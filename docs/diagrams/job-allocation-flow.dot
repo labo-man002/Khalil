@@ -1,0 +1,22 @@
+digraph allocation {
+  graph [rankdir=TB, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65", splines=polyline, outputorder=edgesfirst, fontname="Helvetica", fontsize=18, fontcolor="#26373b", labelloc=t, label="JOB REQUEST → RESOURCE ALLOCATION"];
+  node [shape=box, style="rounded,filled", fillcolor="#fafbfb", color="#aab6b9", penwidth=1, fontname="Helvetica", fontsize=15, fontcolor="#23373c", margin="0.16,0.13"];
+  edge [fontname="Helvetica", fontsize=11, color="#62767d", fontcolor="#465d65", penwidth=1.1, arrowsize=0.7];
+  API [label="API routes\n2-GPU request"];
+  Server [label="Server\nAdmission + lifecycle", fillcolor="#edf3ee", color="#789382"];
+  DB [label="PostgreSQL\nJobs · resource units\nAllocations · events"];
+  Scheduler [label="Scheduler\nFIFO / priority queue"];
+  Placer [label="Placer\nExact resource units"];
+  Context [label="Placement policy\nPack / Spread\nTopology view"];
+  {rank=same; API; Server; DB;}
+  {rank=same; Scheduler; Placer; Context;}
+  API -> Server;
+  Server -> DB [label="read / write"];
+  Server -> Scheduler [label="next job"];
+  Server -> Placer [label="locked inventory"];
+  Scheduler -> Placer [label="attempt", constraint=false];
+  Placer -> Context [label="rank", constraint=false];
+  API -> DB [label="commit / rollback", style=dashed, constraint=false];
+  Scheduler -> Placer [style=invis];
+  Placer -> Context [style=invis];
+}

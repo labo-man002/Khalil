@@ -29,3 +29,7 @@ The original diagrams are explicitly identified as historical, consistent with t
 - Output: `public/images/diagrams/class-architecture.svg` , `entity-relationships.svg`, and the complete `entity-relationships-full.svg`.
 
 The ERD does not turn native enum columns into fictitious lookup tables, and it does not claim a database-enforced unique Job–Allocation relationship that the schema does not declare. `resource_usage` is represented as an existing table, not as an implemented metering service.
+
+## Compact article architecture
+
+`docs/diagrams/job-allocation-flow.dot` is the source for the compact article diagram. It shows API transaction ownership, Server coordination, scheduling, placement, and stored resource assignments from the implemented architecture. Render it with `dot -Tsvg docs/diagrams/job-allocation-flow.dot -o public/images/diagrams/job-allocation-flow.svg`. The PNG is a raster export of the same SVG for social previews.
