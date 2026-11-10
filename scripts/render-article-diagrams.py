@@ -1,4 +1,4 @@
-"""Render four readable whiteboard diagrams for the allocation article.
+"""Render five readable whiteboard diagrams for the allocation article.
 
 Source: job-scheduler/docs/architecture.md and its SQLAlchemy models at
 ba7dca7f7a82a89f8a34b252ff239a03e32dc1a5. Requires fonttools[woff].
@@ -223,7 +223,7 @@ text(40,1014,'Solid arrow: uses / creates.  Hollow arrow: implements.  Dashed ar
 save('policy-abstractions.svg', m)
 
 # 3. Supported grid geometries and the common view consumed during placement.
-m = start(1220, '3. Cluster layouts, one topology interface',
+m = start(1220, '3. Coordinate layouts, one topology interface',
           'Illustrative supported layouts: a four-position wrapping ring; a 3 by 3 non-wrapping mesh; a 3 by 3 wrapping torus; and three layers of a 3 by 3 by 3 torus. In the mesh, coordinates [0,0] and [2,0] are two steps apart; with wrapping they are one step apart. Selected wrap and cross-layer links illustrate the repeating pattern. Placer builds a TopologyView from the cluster configuration and eligible nodes; Pack and Spread read its distances.',
           'Node coordinates and cluster settings define neighbours and distance.')
 
@@ -282,7 +282,7 @@ text(600,888,'Same (x,y), different z.',21,NOTE)
 text(600,921,'Each layer wraps along x and y too.',18,MUTED,max_width=460)
 
 text(40,976,'Dashed blue links show wrap-around; selected links illustrate the repeating pattern.',17,MUTED,max_width=1020)
-text(40,1020,'For placement, every layout follows the same path.',23,NOTE)
+text(40,1020,'The four grid layouts feed the same placement view.',23,NOTE)
 line([(340,1108),(430,1108)],head='arrow')
 label(385,1092,'Placer',18)
 line([(730,1108),(830,1108)],head='arrow')
@@ -293,8 +293,78 @@ component(830,1050,230,115,'Pack / Spread',['Rank candidates'],18,title_size=23)
 text(40,1198,'Illustrative layouts; eligible nodes determine each placement view.',17,MUTED,max_width=1020)
 save('cluster-topologies.svg', m)
 
-# 4. A concrete example of the real request-versus-fulfillment model.
-m = start(910, '4. From a quantity to the exact GPU units',
+# 4. Leaf-spine wiring and discovery using the merged Node/NIC/GPU model.
+m = start(1070, '4. Leaf-spine topology',
+          'Two spine switches connect two leaves. Leaf 1 attaches existing compute Nodes 41 and 42; Leaf 2 attaches Node 43. Each Node exposes nic0 and owns four ResourceNode GPU units. Node 41 has four free units; Nodes 42 and 43 each have two free and two allocated units. Blue highlights one usable route from the chosen root, spine-1, through Leaf 2 to Node 43. GpuCandidateFinder combines free GPU units with operational paths and returns node IDs, free GPU IDs, and paths, sorted by latency and Node ID.',
+          'Switches, ports and physical links connect the existing compute nodes.')
+
+# Physical links: leaf-spine and node-leaf. A crossing is not a switch.
+line([(300,250),(300,410)])
+line([(410,250),(730,410)],NOTE)
+line([(730,250),(410,410)])
+line([(840,250),(840,410)])
+line([(300,500),(300,555),(190,555),(190,640)])
+line([(410,500),(410,585),(550,585),(550,640)])
+line([(730,500),(730,555),(910,555),(910,640)],NOTE)
+
+text(240,144,'Query root',20,NOTE)
+component(240,160,230,90,'Spine 1',['Switch + ports'],18,title_size=25)
+component(670,160,230,90,'Spine 2',['Switch + ports'],18,title_size=25)
+component(240,410,230,90,'Leaf 1',['Switch + ports'],18,title_size=25)
+component(670,410,230,90,'Leaf 2',['Switch + ports'],18,title_size=25)
+
+text(40,294,'Link attributes',21,NOTE)
+underline(40,305,172)
+text(40,338,'Capacity',20)
+text(40,366,'Latency',20)
+text(40,394,'Operational state',18)
+text(930,296,'Ports follow',17,MUTED,max_width=130)
+text(930,322,'the hardware',17,MUTED,max_width=130)
+text(930,348,'configuration.',17,MUTED,max_width=130)
+
+for x,y,name,tx,ty in [
+    (300,250,'p1',312,273),(410,250,'p2',370,273),
+    (730,250,'p1',742,273),(840,250,'p2',852,273),
+    (300,410,'p1',312,394),(410,410,'p2',370,394),
+    (730,410,'p1',742,394),(840,410,'p2',852,394),
+    (300,500,'p3',312,524),(410,500,'p4',422,524),
+    (730,500,'p3',742,524),
+]:
+    parts.append(f'<rect x="{x-4}" y="{y-4}" width="8" height="8" fill="white" stroke="{INK}" stroke-width="1.5"/>')
+    text(tx,ty,name,16)
+
+for x,node,free in [(40,41,4),(400,42,2),(760,43,2)]:
+    box(x,640,300,165)
+    text(x+18,677,f'Node {node}',25)
+    graph_node(x+150,640,NOTE if node==43 else INK,4)
+    text(x+162,622,'nic0',17)
+    for index in range(4):
+        gx=x+18+59*index
+        box(gx,701,45,37)
+        text(gx+22.5,726,f'G{index}',16,anchor='middle')
+        if index>=free:
+            line([(gx+5,734),(gx+40,705)],MUTED)
+    text(x+18,782,f'{free} free GPU units',20,NOTE)
+
+box(40,831,22,22)
+text(76,849,'Available',18)
+box(245,831,22,22)
+line([(248,850),(264,834)],MUTED)
+text(281,849,'Allocated',18)
+text(500,849,'GPU inventory stays on Node.resources.',19,MUTED,max_width=560)
+text(40,890,'Blue highlights one usable route from the selected root switch.',20,NOTE,max_width=1020)
+
+line([(490,977),(650,977)],head='arrow')
+label(570,960,'returns',19)
+component(40,915,450,120,'GpuCandidateFinder',
+          ['Free GPU units + usable paths','Capacity + latency constraints'],19,title_size=25)
+component(650,915,410,120,'GpuCandidate',
+          ['node_id, free_gpu_ids, path','Sorted by latency, then Node ID'],18,title_size=25)
+text(40,1061,'Illustrative wiring and GPU state; squares are existing ResourceNode units.',16,MUTED,max_width=1020)
+save('leaf-spine.svg', m)
+
+# 5. A concrete example of the real request-versus-fulfillment model.
+m = start(910, '5. From a quantity to the exact GPU units',
           'Illustrative job 42 requests two GPUs through ResourceRequirement. An Allocation records its assignment. Two separate AllocationNode records identify GPU ResourceNode 87 on physical Node 12 and ResourceNode 91 on Node 13. The same unit links support precise release.',
           'One request for two GPUs; two allocation links remember which GPUs it received.')
 line([(340,235),(430,235)], head='arrow')
@@ -324,4 +394,4 @@ text(40,752,'which units were assigned.',20)
 text(40,858,'Completion follows the same links to release GPUs 87 and 91.',21)
 text(1060,891,'Example IDs; relationships follow the actual models.',16,MUTED,anchor='end')
 save('resource-ownership.svg', m)
-print('Rendered four whiteboard diagrams with outlined, readable lettering.')
+print('Rendered five whiteboard diagrams with outlined, readable lettering.')

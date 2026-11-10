@@ -25,7 +25,7 @@ This is the durable record of Khalil Ben Maaoui's choices for the portfolio and 
 - The public workload-management project is [labo-man002/job-scheduler](https://github.com/labo-man002/job-scheduler). It models requests, queue order, resource placement, allocation records, lifecycle, and release. Workload execution belongs to a separate layer.
 - Its current queue is process-local. The Scheduler chooses the next placement attempt; the transaction-local Placer chooses exact resource units. The Server coordinates admission and persistence; API routes own transaction commit and rollback.
 - Explain the topology connection in allocation writing: each cluster defines its layout, node coordinates are checked against it, and placement builds a fresh view of eligible nodes. That view derives neighbours and distances for the placement policy to use across supported grid layouts.
-- The standalone GPU leaf–spine prototype is separate from the live allocation path. Recheck implementation before describing an integration or bandwidth reservation as available.
+- The merged leaf–spine model uses switches, ports, links, and the existing Node/NIC/GPU identities. Describe its path discovery and GPU candidate results by what the code implements; verify source before extending claims about allocation or bandwidth reservation.
 - Use real project screenshots for project covers and interface examples. Use the project's actual model and code to derive architecture and ERD illustrations.
 - Credit the official Sparxity system photograph and retain image provenance in [ASSET_SOURCES.md](ASSET_SOURCES.md).
 - Keep historical ERDs labeled as historical. Derive current schema relationships from the actual ORM models; do not add constraints or features that the source does not implement.
@@ -45,7 +45,8 @@ The selected style is **a whiteboard sketch with slightly hand-drawn boxes and a
 - Prioritize readable labels, precise relationships, and generous spacing. Simple diagrams are welcome when they communicate the design well.
 - Use a white background, thin pen-like outlines, dark lettering, and restrained blue annotations. Give detail through meaningful connections and explanations rather than decorative panels, badges, shadows, or stock artwork.
 - Retain real class and entity names where they explain an abstraction. Add short plain-language roles so readers can follow the diagram without knowing the code.
-- Separate distinct questions into focused views. The allocation article has **overall architecture**, **policy abstractions**, **cluster topologies**, and **resource ownership** sketches. The topology sketch was added at Khalil's request using the same whiteboard style.
+- Separate distinct questions into focused views. The allocation article has **overall architecture**, **policy abstractions**, **coordinate topologies**, **leaf–spine topology**, and **resource ownership** sketches.
+- Include leaf–spine when illustrating the project's topologies. Khalil confirmed that its final merge is complete and requested the normal **Leaf–spine** label without prototype or maturity badges. Use the merged Node/NIC/ResourceNode representation and the project's existing fabric-diagram layout as references.
 - Illustrate the supported ring, mesh, and 2D/3D torus layouts with clear coordinate examples. Label selected wrap and cross-layer links as representative, and connect the layouts to the shared placement view.
 - Make policy interfaces, their implementations, and their dependencies clear. Show the request-versus-assignment distinction and exact resource-unit ownership accurately.
 - For the two-GPU example, show two separate AllocationNode links, each identifying its own ResourceNode on a physical Node.

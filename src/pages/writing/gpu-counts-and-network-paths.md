@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/Post.astro
 title: "A free GPU and a reachable GPU answer different questions"
-description: "How the standalone leaf–spine model combines resource inventory with operational paths, and where that explanation stops."
+description: "How the leaf–spine model combines GPU inventory with operational paths."
 slug: gpu-counts-and-network-paths
 date: "2026-11-10"
 category: Network model notes
@@ -9,7 +9,7 @@ tags: [Networking, Placement, Graphs]
 readTime: 4
 ---
 
-The GPU inventory in my allocation prototype answers which resource units are available. The standalone leaf–spine model adds another question: can an operational path reach the node that owns those GPUs?
+The GPU inventory tracks which resource units are available. The leaf–spine model adds another question: can an operational path reach the node that owns those GPUs?
 
 These are separate pieces of information. Combining them is useful, but it still does not complete the placement decision.
 
@@ -39,10 +39,10 @@ Those next decisions require a job-level contract: which nodes must communicate,
 
 ## Nominal capacity is not residual bandwidth
 
-A link configured for a particular speed may already carry competing traffic. The prototype checks the nominal value; it has no contention accounting or residual-bandwidth reservation.
+A link configured for a particular speed may already carry competing traffic. The model checks the nominal value; it has no contention accounting or residual-bandwidth reservation.
 
 Calling the result “a path meeting configured capacity and latency constraints” keeps its meaning precise. It would take another model to promise available bandwidth or predict application performance.
 
-This module is currently independent of the live scheduler–placer allocation path. The distinction is documented so that a useful graph query does not silently become a stronger claim about actual placement.
+A candidate contains a node ID, free GPU-unit IDs, and the path used to reach that node. Allocation records track which resources have been assigned to a job.
 
 Source: [GPU leaf–spine design](https://github.com/labo-man002/job-scheduler/blob/main/docs/gpu-leaf-spine.md).
