@@ -1,4 +1,4 @@
-"""Render three readable whiteboard diagrams for the allocation article.
+"""Render four readable whiteboard diagrams for the allocation article.
 
 Source: job-scheduler/docs/architecture.md and its SQLAlchemy models at
 ba7dca7f7a82a89f8a34b252ff239a03e32dc1a5. Requires fonttools[woff].
@@ -101,6 +101,28 @@ def underline(x, y, length):
     stroke(f'M {x} {y} Q {x+length*.45} {y+1.5} {x+length} {y-.5}', NOTE, weight=1.7)
 
 
+def graph_node(x, y, color=INK, radius=6):
+    r = radius
+    stroke(f'M {x-r} {y} C {x-r-.4} {y-r*.6} {x-r*.5} {y-r-.3} {x} {y-r} '
+           f'C {x+r*.6} {y-r+.3} {x+r+.3} {y-r*.5} {x+r} {y} '
+           f'C {x+r-.2} {y+r*.6} {x+r*.5} {y+r+.3} {x} {y+r} '
+           f'C {x-r*.6} {y+r-.2} {x-r-.3} {y+r*.5} {x-r} {y} Z',
+           color, weight=1.8, fill='white')
+
+
+def grid(x, y, dx, dy, highlighted=(), radius=6, draw_nodes=True):
+    for row in range(3):
+        for col in range(2):
+            line([(x+col*dx,y+row*dy),(x+(col+1)*dx,y+row*dy)])
+    for col in range(3):
+        for row in range(2):
+            line([(x+col*dx,y+row*dy),(x+col*dx,y+(row+1)*dy)])
+    if draw_nodes:
+        for row in range(3):
+            for col in range(3):
+                graph_node(x+col*dx,y+row*dy,NOTE if (col,row) in highlighted else INK,radius)
+
+
 def start(height, title, description, subtitle):
     global parts, used, rng
     used = set()
@@ -200,8 +222,79 @@ component(630,835,390,125,'TopologyView',['neighbors(node), distance(a, b)','Eli
 text(40,1014,'Solid arrow: uses / creates.  Hollow arrow: implements.  Dashed arrow: reads the view.',18,MUTED)
 save('policy-abstractions.svg', m)
 
-# 3. A concrete example of the real request-versus-fulfillment model.
-m = start(910, '3. From a quantity to the exact GPU units',
+# 3. Supported grid geometries and the common view consumed during placement.
+m = start(1220, '3. Cluster layouts, one topology interface',
+          'Illustrative supported layouts: a four-position wrapping ring; a 3 by 3 non-wrapping mesh; a 3 by 3 wrapping torus; and three layers of a 3 by 3 by 3 torus. In the mesh, coordinates [0,0] and [2,0] are two steps apart; with wrapping they are one step apart. Selected wrap and cross-layer links illustrate the repeating pattern. Placer builds a TopologyView from the cluster configuration and eligible nodes; Pack and Spread read its distances.',
+          'Node coordinates and cluster settings define neighbours and distance.')
+
+text(40,145,'Ring / 1D',25,NOTE)
+underline(40,156,147)
+text(40,188,'Dimensions [4], wrap on',20,MUTED,max_width=480)
+for a,b in zip([85,205,325],[205,325,445]):
+    line([(a,300),(b,300)])
+stroke('M 85 300 C 85 205 445 205 445 300',NOTE,dashed=True)
+text(265,215,'wrap-around',19,NOTE,anchor='middle')
+for index,x in enumerate([85,205,325,445]):
+    graph_node(x,300,NOTE if index in (0,3) else INK)
+    text(x,345,f'[{index}]',20,anchor='middle')
+text(40,445,'[0] to [3]: 1 step.',21,NOTE)
+
+text(600,145,'Mesh / 2D',25,NOTE)
+underline(600,156,154)
+text(600,188,'Dimensions [3,3], wrap off',20,MUTED,max_width=460)
+grid(660,260,140,60,draw_nodes=False)
+line([(660,260),(800,260),(940,260)],NOTE)
+for row in range(3):
+    for col in range(3):
+        graph_node(660+col*140,260+row*60,NOTE if row==0 else INK)
+text(660,237,'[0,0]',19,NOTE,anchor='middle')
+text(940,237,'[2,0]',19,NOTE,anchor='middle')
+text(600,445,'[0,0] to [2,0]: 2 steps.',21,NOTE)
+
+text(40,535,'Torus / 2D',25,NOTE)
+underline(40,546,164)
+text(40,578,'Dimensions [3,3], wrap on',20,MUTED,max_width=480)
+grid(110,670,150,75,draw_nodes=False)
+stroke('M 110 670 C 110 600 410 600 410 670',NOTE,dashed=True)
+for row in range(3):
+    for col in range(3):
+        graph_node(110+col*150,670+row*75,NOTE if (col,row) in [(0,0),(2,0)] else INK)
+text(85,660,'[0,0]',18,NOTE,anchor='end')
+text(435,660,'[2,0]',18,NOTE)
+text(40,888,'[0,0] to [2,0]: 1 step.',21,NOTE)
+text(40,921,'Wrapping repeats along both axes.',18,MUTED,max_width=480)
+
+text(600,535,'Torus / 3D',25,NOTE)
+underline(600,546,166)
+text(600,578,'Dimensions [3,3,3], wrap on',19,MUTED,max_width=460)
+for z,x in enumerate([630,790,950]):
+    grid(x,710,32,45,draw_nodes=False)
+    text(x+32,850,f'z = {z}',22,anchor='middle')
+stroke('M 630 710 C 630 665 790 665 790 710')
+stroke('M 790 710 C 790 665 950 665 950 710')
+stroke('M 950 710 C 950 600 630 600 630 710',NOTE,dashed=True)
+text(790,618,'wrap in z',18,NOTE,anchor='middle')
+for x in [630,790,950]:
+    for row in range(3):
+        for col in range(3):
+            graph_node(x+col*32,710+row*45,NOTE if (col,row)==(0,0) else INK,4.5)
+text(600,888,'Same (x,y), different z.',21,NOTE)
+text(600,921,'Each layer wraps along x and y too.',18,MUTED,max_width=460)
+
+text(40,976,'Dashed blue links show wrap-around; selected links illustrate the repeating pattern.',17,MUTED,max_width=1020)
+text(40,1020,'For placement, every layout follows the same path.',23,NOTE)
+line([(340,1108),(430,1108)],head='arrow')
+label(385,1092,'Placer',18)
+line([(730,1108),(830,1108)],head='arrow')
+label(780,1092,'read',18)
+component(40,1050,300,115,'Cluster + nodes',['Layout + valid coordinates'],18,title_size=24)
+component(430,1050,300,115,'TopologyView',['Neighbours + distances'],19,title_size=24)
+component(830,1050,230,115,'Pack / Spread',['Rank candidates'],18,title_size=23)
+text(40,1198,'Illustrative layouts; eligible nodes determine each placement view.',17,MUTED,max_width=1020)
+save('cluster-topologies.svg', m)
+
+# 4. A concrete example of the real request-versus-fulfillment model.
+m = start(910, '4. From a quantity to the exact GPU units',
           'Illustrative job 42 requests two GPUs through ResourceRequirement. An Allocation records its assignment. Two separate AllocationNode records identify GPU ResourceNode 87 on physical Node 12 and ResourceNode 91 on Node 13. The same unit links support precise release.',
           'One request for two GPUs; two allocation links remember which GPUs it received.')
 line([(340,235),(430,235)], head='arrow')
@@ -231,4 +324,4 @@ text(40,752,'which units were assigned.',20)
 text(40,858,'Completion follows the same links to release GPUs 87 and 91.',21)
 text(1060,891,'Example IDs; relationships follow the actual models.',16,MUTED,anchor='end')
 save('resource-ownership.svg', m)
-print('Rendered three whiteboard diagrams with outlined, readable lettering.')
+print('Rendered four whiteboard diagrams with outlined, readable lettering.')

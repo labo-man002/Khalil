@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="910" viewBox="0 0 1100 910" role="img" aria-labelledby="title desc">
-<title id="title">3. From a quantity to the exact GPU units</title>
+<title id="title">4. From a quantity to the exact GPU units</title>
 <desc id="desc">Illustrative job 42 requests two GPUs through ResourceRequirement. An Allocation records its assignment. Two separate AllocationNode records identify GPU ResourceNode 87 on physical Node 12 and ResourceNode 91 on Node 13. The same unit links support precise release.</desc>
 <metadata>Lettering: Virgil by Ellinor Rapp. SIL Open Font License 1.1. https://github.com/excalidraw/virgil</metadata>
 <defs>
@@ -58,40 +58,40 @@
 <path id="g121" d="M120 -355C120 -379 128 -404 139 -426C147 -431 156 -432 165 -432C175 -432 186 -430 196 -426C210 -417 214 -405 215 -388C226 -324 221 -289 241 -248C277 -158 303 -77 336 10C339 23 375 130 380 143C380 145 394 174 399 181C410 200 454 279 462 295C478 319 499 358 481 384C468 397 451 403 434 403C418 403 401 398 386 390C368 379 367 353 361 333C346 282 329 220 291 175C259 142 234 107 193 104C158 112 109 139 108 181C106 231 104 278 120 327C128 339 138 350 140 362C144 381 138 391 120 403C110 408 99 411 87 411C65 411 44 401 38 378C31 293 5 220 25 137C42 91 66 42 114 23C134 8 152 3 171 3C185 3 199 6 215 10C220 11 241 9 246 9C242 -22 226 -68 215 -96C193 -150 138 -298 120 -343Z"/>
 </defs>
 <rect width="1100" height="910" fill="white"/>
-<g fill="#283238" aria-label="3. From a quantity to the exact GPU units">
-<use href="#g51" transform="translate(40.000 50) scale(0.030000 -0.030000)"/>
-<use href="#g46" transform="translate(60.430 50) scale(0.030000 -0.030000)"/>
-<use href="#g70" transform="translate(83.650 50) scale(0.030000 -0.030000)"/>
-<use href="#g114" transform="translate(100.870 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(113.770 50) scale(0.030000 -0.030000)"/>
-<use href="#g109" transform="translate(130.390 50) scale(0.030000 -0.030000)"/>
-<use href="#g97" transform="translate(164.380 50) scale(0.030000 -0.030000)"/>
-<use href="#g113" transform="translate(199.390 50) scale(0.030000 -0.030000)"/>
-<use href="#g117" transform="translate(215.770 50) scale(0.030000 -0.030000)"/>
-<use href="#g97" transform="translate(232.810 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(252.820 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(266.830 50) scale(0.030000 -0.030000)"/>
-<use href="#g105" transform="translate(283.780 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(290.350 50) scale(0.030000 -0.030000)"/>
-<use href="#g121" transform="translate(307.300 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(336.370 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(353.320 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(384.940 50) scale(0.030000 -0.030000)"/>
-<use href="#g104" transform="translate(401.890 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(416.710 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(448.120 50) scale(0.030000 -0.030000)"/>
-<use href="#g120" transform="translate(464.530 50) scale(0.030000 -0.030000)"/>
-<use href="#g97" transform="translate(481.390 50) scale(0.030000 -0.030000)"/>
-<use href="#g99" transform="translate(501.400 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(516.460 50) scale(0.030000 -0.030000)"/>
-<use href="#g71" transform="translate(548.410 50) scale(0.030000 -0.030000)"/>
-<use href="#g80" transform="translate(572.080 50) scale(0.030000 -0.030000)"/>
-<use href="#g85" transform="translate(591.910 50) scale(0.030000 -0.030000)"/>
-<use href="#g117" transform="translate(628.330 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(645.370 50) scale(0.030000 -0.030000)"/>
-<use href="#g105" transform="translate(659.380 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(665.950 50) scale(0.030000 -0.030000)"/>
-<use href="#g115" transform="translate(682.900 50) scale(0.030000 -0.030000)"/>
+<g fill="#283238" aria-label="4. From a quantity to the exact GPU units">
+<use href="#g52" transform="translate(40.000 50) scale(0.030000 -0.030000)"/>
+<use href="#g46" transform="translate(59.200 50) scale(0.030000 -0.030000)"/>
+<use href="#g70" transform="translate(82.420 50) scale(0.030000 -0.030000)"/>
+<use href="#g114" transform="translate(99.640 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(112.540 50) scale(0.030000 -0.030000)"/>
+<use href="#g109" transform="translate(129.160 50) scale(0.030000 -0.030000)"/>
+<use href="#g97" transform="translate(163.150 50) scale(0.030000 -0.030000)"/>
+<use href="#g113" transform="translate(198.160 50) scale(0.030000 -0.030000)"/>
+<use href="#g117" transform="translate(214.540 50) scale(0.030000 -0.030000)"/>
+<use href="#g97" transform="translate(231.580 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(251.590 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(265.600 50) scale(0.030000 -0.030000)"/>
+<use href="#g105" transform="translate(282.550 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(289.120 50) scale(0.030000 -0.030000)"/>
+<use href="#g121" transform="translate(306.070 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(335.140 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(352.090 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(383.710 50) scale(0.030000 -0.030000)"/>
+<use href="#g104" transform="translate(400.660 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(415.480 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(446.890 50) scale(0.030000 -0.030000)"/>
+<use href="#g120" transform="translate(463.300 50) scale(0.030000 -0.030000)"/>
+<use href="#g97" transform="translate(480.160 50) scale(0.030000 -0.030000)"/>
+<use href="#g99" transform="translate(500.170 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(515.230 50) scale(0.030000 -0.030000)"/>
+<use href="#g71" transform="translate(547.180 50) scale(0.030000 -0.030000)"/>
+<use href="#g80" transform="translate(570.850 50) scale(0.030000 -0.030000)"/>
+<use href="#g85" transform="translate(590.680 50) scale(0.030000 -0.030000)"/>
+<use href="#g117" transform="translate(627.100 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(644.140 50) scale(0.030000 -0.030000)"/>
+<use href="#g105" transform="translate(658.150 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(664.720 50) scale(0.030000 -0.030000)"/>
+<use href="#g115" transform="translate(681.670 50) scale(0.030000 -0.030000)"/>
 </g>
 <g fill="#56616a" aria-label="One request for two GPUs; two allocation links remember which GPUs it received.">
 <use href="#g79" transform="translate(40.000 84) scale(0.020000 -0.020000)"/>

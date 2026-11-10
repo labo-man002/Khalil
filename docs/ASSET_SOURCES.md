@@ -33,12 +33,13 @@ The ERD does not turn native enum columns into fictitious lookup tables, and it 
 ## Article whiteboard diagrams
 
 - Source: `docs/architecture.md` and the actual SQLAlchemy models in the public project, pinned to the source commit above.
-- Renderer: `scripts/render-article-diagrams.py`, a deterministic, hand-positioned SVG layout with restrained pen outlines. Install `scripts/diagram-requirements.txt` in a local Python environment, then run `python3 scripts/render-article-diagrams.py` to regenerate all three figures. Label widths are checked against their boxes.
+- Renderer: `scripts/render-article-diagrams.py`, a deterministic, hand-positioned SVG layout with restrained pen outlines. Install `scripts/diagram-requirements.txt` in a local Python environment, then run `python3 scripts/render-article-diagrams.py` to regenerate all four figures. Label widths are checked against their boxes.
 - Architecture output: `public/images/diagrams/job-allocation-flow.svg`. This shows component responsibilities, request/process/transaction lifetimes, the topology view, and API transaction ownership.
 - Policy output: `public/images/diagrams/policy-abstractions.svg`. This separates queue-order and placement interfaces, their actual implementations, and the topology-view dependency.
+- Topology output: `public/images/diagrams/cluster-topologies.svg`. This compares illustrative `RING`, `MESH_2D`, `TORUS_2D`, and `TORUS_3D` configurations from the implemented coordinate-grid model. Neighbour and distance rules follow `backend/app/domain/topology.py` at the pinned source commit. Blue dashed lines show selected wrap examples; cross-layer links are representative. The examples use coordinate steps, and the common placement view is built over currently eligible nodes.
 - Ownership output: `public/images/diagrams/resource-ownership.svg`. This is a focused example of the persisted request/fulfillment/inventory model, not a complete ERD. Two separate `AllocationNode` records point to two individual `ResourceNode` units. IDs are illustrative, and the figure adds no uniqueness constraints.
 - Matching PNG files are 2400-pixel-wide raster exports of the SVGs, made with Sharp. They support downloads and the article's social preview.
 
 The lettering uses Virgil by Ellinor Rapp, obtained from https://github.com/excalidraw/virgil (`Virgil.woff2`, Git blob `cb222253f5e018cab62d6a05ad407faa1fdd408a`). The unchanged font and its SIL Open Font License 1.1 are stored in `assets/fonts/`. Glyph outlines in the SVGs preserve the lettering in browsers and raster exports without runtime font downloads. SVG titles, descriptions, and labels retain the meaning for accessibility.
 
-These three focused sketches replace the earlier combined article diagram. The complete class architecture and current-model ERDs remain available in the Work case study.
+These focused sketches explain separate parts of the allocation story. The complete class architecture and current-model ERDs remain available in the Work case study.

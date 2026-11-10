@@ -45,7 +45,8 @@ The selected style is **a whiteboard sketch with slightly hand-drawn boxes and a
 - Prioritize readable labels, precise relationships, and generous spacing. Simple diagrams are welcome when they communicate the design well.
 - Use a white background, thin pen-like outlines, dark lettering, and restrained blue annotations. Give detail through meaningful connections and explanations rather than decorative panels, badges, shadows, or stock artwork.
 - Retain real class and entity names where they explain an abstraction. Add short plain-language roles so readers can follow the diagram without knowing the code.
-- Separate distinct questions into focused views. For the allocation article, Khalil chose three diagrams: **overall architecture**, **policy abstractions**, and **resource ownership**.
+- Separate distinct questions into focused views. The allocation article has **overall architecture**, **policy abstractions**, **cluster topologies**, and **resource ownership** sketches. The topology sketch was added at Khalil's request using the same whiteboard style.
+- Illustrate the supported ring, mesh, and 2D/3D torus layouts with clear coordinate examples. Label selected wrap and cross-layer links as representative, and connect the layouts to the shared placement view.
 - Make policy interfaces, their implementations, and their dependencies clear. Show the request-versus-assignment distinction and exact resource-unit ownership accurately.
 - For the two-GPU example, show two separate AllocationNode links, each identifying its own ResourceNode on a physical Node.
 - Keep figures wider than prose when needed, retain explanatory captions, and offer full-size SVG and PNG downloads. On small screens, keep labels large enough to read through horizontal scrolling.
