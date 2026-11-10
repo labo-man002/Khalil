@@ -30,11 +30,9 @@ Before accepting the request, the application checks the client and the institut
 
 Suppose GPU 87 on one machine is available, while GPU 91 on another is still assigned to an earlier job. Our request needs both. It stays in the queue until there is another opportunity to place it.
 
-Queue order matters here. An application with multiple waiting jobs needs a rule for deciding which one to consider first. My project supports first-in-first-out and priority-based ordering. With insufficient capacity, its default policy leaves the job queued and stops that queue pass.
+The queue can follow arrival order or job priority. By default, if the next job needs more capacity than is free, it stays queued and the application does not try the jobs behind it.
 
-Later, completion of the earlier job is recorded. GPU 91 is released, and the application checks the queue again.
-
-Our two-GPU request can now receive another placement attempt.
+When the earlier job is marked complete, the application releases GPU 91 and checks the queue again. With both GPUs now free, it can try to place our request.
 
 ## Choosing the two GPUs
 
