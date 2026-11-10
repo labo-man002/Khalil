@@ -2,6 +2,10 @@
 
 A static portfolio and engineering notebook built with Astro. Includes an introduction, professional experience, education, skills, a Sparxity / SpiNNaker2 professional case study and two public project case studies, four illustrated engineering notes, a searchable writing archive, RSS, sitemap, accessible navigation, and the provided CV download.
 
+## Website and blog decisions
+
+Read [docs/WEBSITE_DECISIONS.md](docs/WEBSITE_DECISIONS.md) before changing content or design. It records the agreed writing approach, whiteboard diagram style, project boundaries, Sparxity placement, and hosting choices. [AGENTS.md](AGENTS.md) points future coding sessions to these decisions.
+
 ## Local development
 
 Requires Node.js 22.12+ (Node 24 is used in CI).
