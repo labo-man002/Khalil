@@ -1,0 +1,5 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/site';
+---
+<Base title="Page not found"><section class="not-found shell"><p class="eyebrow">A route without a destination</p><h1>404.</h1><p>This page isn’t here. The work and the notebook are a good place to pick up again.</p><a class="button button-dark" href={url()}>Back to the homepage <span aria-hidden="true">→</span></a></section></Base>

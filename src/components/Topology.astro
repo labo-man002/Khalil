@@ -1,0 +1,19 @@
+---
+const nodes = Array.from({ length: 12 }, (_, i) => ({ x: 94 + (i % 4) * 94, y: 100 + Math.floor(i / 4) * 85, selected: [1, 2, 5, 6].includes(i) }));
+---
+<div class="topology-figure">
+  <div class="figure-heading"><span class="eyebrow">FIELD NOTES / 001</span><span class="figure-cross" aria-hidden="true">+</span></div>
+  <svg viewBox="0 0 480 380" role="img" aria-labelledby="topology-title topology-desc">
+    <title id="topology-title">A sketch of topology-aware placement</title><desc id="topology-desc">Twelve nodes form a grid. Four adjacent nodes are highlighted as one illustrative allocation; dashed lines show wraparound connections.</desc>
+    <defs><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.8" fill="currentColor" opacity=".12" /></pattern></defs>
+    <rect width="480" height="380" fill="url(#dots)" />
+    <rect x="166" y="76" width="140" height="135" rx="24" fill="#6d886d" opacity=".12" stroke="#6d886d" stroke-width="1.5" stroke-dasharray="5 5" />
+    {nodes.map((n, i) => <g>{i % 4 < 3 && <line x1={n.x+15} y1={n.y} x2={n.x+79} y2={n.y} stroke="#a8b2a5" stroke-width="1.4" />}{i < 8 && <line x1={n.x} y1={n.y+15} x2={n.x} y2={n.y+70} stroke="#a8b2a5" stroke-width="1.4" />}</g>)}
+    {[100,185,270].map(y => <path d={`M 94 ${y-16} C 45 ${y-70} 425 ${y-70} 376 ${y-16}`} fill="none" stroke="#a8b2a5" stroke-width="1.2" stroke-dasharray="4 6" />)}
+    {nodes.map((n, i) => <g><rect x={n.x-16} y={n.y-16} width="32" height="32" rx="7" fill={n.selected ? '#55735a' : '#f7f5ef'} stroke={n.selected ? '#35553e' : '#829281'} stroke-width="1.5" /><text x={n.x} y={n.y+4} font-size="10" text-anchor="middle" font-family="monospace" fill={n.selected ? '#fff' : '#637160'}>{String(i).padStart(2, '0')}</text></g>)}
+    <path d="M 305 190 Q 360 205 386 232" fill="none" stroke="#8c754c" stroke-width="1.1" />
+    <text x="312" y="249" font-size="12" fill="#7a684a" font-family="Georgia, serif" font-style="italic">a placement,</text><text x="312" y="266" font-size="12" fill="#7a684a" font-family="Georgia, serif" font-style="italic">not just a count.</text>
+    <text x="64" y="333" font-size="10" letter-spacing="1.5" fill="#6a7866" font-family="monospace">TOPOLOGY → PLACEMENT → STATE</text>
+  </svg>
+  <div class="figure-caption"><span class="legend-square"></span> An illustrative allocation <span class="figure-number">fig. 01</span></div>
+</div>

@@ -1,0 +1,51 @@
+---
+import '../styles/global.css';
+import { profile, url } from '../lib/site';
+const { title, description = 'Khalil Ben Maaoui is a software infrastructure engineer in Dresden, working on distributed systems, HPC scheduling, and topology-aware allocation.', image = 'social-card.png', active = '' } = Astro.props;
+const fullTitle = title ? `${title} — ${profile.name}` : `${profile.name} — Software Infrastructure Engineer`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const nav = [{ label: 'Work', path: 'work/' }, { label: 'Writing', path: 'writing/' }, { label: 'About', path: 'about/' }];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f5ef" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <link rel="alternate" type="application/rss+xml" title="Khalil's engineering notes" href={url('rss.xml')} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(url(image), Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>{fullTitle}</title>
+    <script type="application/ld+json" set:html={JSON.stringify({ '@context': 'https://schema.org', '@type': 'Person', name: profile.name, jobTitle: profile.headline, url: Astro.site?.href, sameAs: [profile.github, profile.linkedin], knowsAbout: ['C++', 'Python', 'Distributed systems', 'Slurm', 'HPC scheduling'] })} />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <header class="site-header shell">
+      <a class="wordmark" href={url()} aria-label="Khalil Ben Maaoui — home"><span class="monogram">kb<span>.</span></span><span class="wordmark-name">Khalil<br />Ben Maaoui</span></a>
+      <nav class="desktop-nav" aria-label="Main navigation">{nav.map(item => <a class:list={[{ selected: active === item.label.toLowerCase() }]} aria-current={active === item.label.toLowerCase() ? 'page' : undefined} href={url(item.path)}>{item.label}</a>)}</nav>
+      <a class="contact-link" href={`mailto:${profile.email}`}>Let’s talk <span aria-hidden="true">↗</span></a>
+      <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span></button>
+    </header>
+    <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile navigation" hidden>{nav.map(item => <a href={url(item.path)}>{item.label}</a>)}<a href={`mailto:${profile.email}`}>Get in touch ↗</a></nav>
+    <main id="main"><slot /></main>
+    <footer class="site-footer shell">
+      <div class="footer-top"><div><span class="eyebrow">A conversation starts here</span><h2>Let’s talk systems.</h2><a class="email-link" href={`mailto:${profile.email}`}>{profile.email} <span aria-hidden="true">↗</span></a></div><div class="footer-links"><a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href={profile.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href={url('resume.pdf')}>Résumé ↗</a><a href={url('rss.xml')}>RSS ↗</a></div></div>
+      <div class="footer-bottom"><span>© {new Date().getFullYear()} Khalil Ben Maaoui</span><span>Dresden, Germany <span class="small-dot"></span> Built with care, kept simple.</span><a href={url('colophon/')}>Colophon</a></div>
+    </footer>
+    <script>
+      const button = document.querySelector<HTMLButtonElement>('.menu-toggle');
+      const menu = document.getElementById('mobile-nav');
+      function closeMenu() { if (!button || !menu) return; button.setAttribute('aria-expanded', 'false'); button.setAttribute('aria-label', 'Open navigation'); menu.hidden = true; }
+      button?.addEventListener('click', () => { if (!menu) return; const open = button.getAttribute('aria-expanded') !== 'true'; button.setAttribute('aria-expanded', String(open)); button.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation'); menu.hidden = !open; });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMenu(); button?.focus(); } });
+      document.addEventListener('click', e => { if (e.target instanceof Element && !e.target.closest('.menu-toggle') && !e.target.closest('#mobile-nav')) closeMenu(); });
+    </script>
+  </body>
+</html>

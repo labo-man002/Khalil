@@ -1,0 +1,22 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+const posts = Object.values(import.meta.glob('./*.md', { eager: true })).sort((a: any, b: any) => b.frontmatter.date.localeCompare(a.frontmatter.date));
+const tags = ['All', 'Architecture', 'Placement', 'Simulation', 'Networking'];
+---
+<Base title="Engineering notes" active="writing"><section class="page-intro shell"><p class="eyebrow">The engineering notebook</p><h1>A closer look<br /><em>at how things work.</em></h1><p>Architecture walkthroughs, allocation models, and small scheduling experiments. Written from the implementation, with the limitations left in.</p></section><section class="shell writing-archive"><div class="writing-tools"><div class="filter-buttons" role="group" aria-label="Filter articles by topic">{tags.map(tag => <button type="button" data-filter={tag} aria-pressed={tag === 'All' ? 'true' : 'false'}>{tag}</button>)}</div><div class="search-wrap"><label class="visually-hidden" for="article-search">Search articles</label><input id="article-search" type="search" placeholder="Search the notebook…" autocomplete="off" /></div></div><p class="search-status" role="status" aria-live="polite" id="search-status">{posts.length} notes in the notebook</p><PostList posts={posts} /><p class="no-results" id="no-results" hidden>No notes match that search. Try another topic or a shorter phrase.</p></section><script>
+import { matchesPost } from '../../lib/filter.mjs';
+const input = document.querySelector<HTMLInputElement>('#article-search');
+const filters = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+const rows = [...document.querySelectorAll<HTMLElement>('[data-post]')];
+let selected = 'All';
+function applyFilters() {
+  let count = 0;
+  rows.forEach(row => { const show = matchesPost({ search: row.dataset.search || '', tags: (row.dataset.tags || '').split('|') }, input?.value || '', selected); row.hidden = !show; if (show) count++; });
+  const status = document.getElementById('search-status');
+  if (status) status.textContent = `${count} ${count === 1 ? 'note' : 'notes'} ${selected === 'All' ? 'in the notebook' : `on ${selected.toLowerCase()}`}`;
+  const empty = document.getElementById('no-results'); if (empty) empty.hidden = count !== 0;
+}
+input?.addEventListener('input', applyFilters);
+filters.forEach(button => button.addEventListener('click', () => { selected = button.dataset.filter || 'All'; filters.forEach(b => b.setAttribute('aria-pressed', String(b === button))); applyFilters(); }));
+</script></Base>

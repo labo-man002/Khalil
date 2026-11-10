@@ -1,0 +1,26 @@
+name: Build and check
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run check:links
+      - name: Check GitHub Pages project paths
+        run: |
+          BASE_PATH=/personal-site/ SITE_URL=https://labo-man002.github.io npm run build
+          BASE_PATH=/personal-site/ npm run check:links

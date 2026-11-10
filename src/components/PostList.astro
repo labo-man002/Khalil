@@ -1,0 +1,11 @@
+---
+import { url, date } from '../lib/site';
+const { posts, compact = false } = Astro.props;
+---
+<div class:list={['post-list', { compact }]}>
+  {posts.map((post: any, i: number) => <article class="post-row" data-post data-search={`${post.frontmatter.title} ${post.frontmatter.description} ${post.frontmatter.tags.join(' ')}`.toLowerCase()} data-tags={post.frontmatter.tags.join('|')}>
+    <span class="post-index">{String(i+1).padStart(2, '0')}</span>
+    <div class="post-row-content"><div class="post-meta"><span>{post.frontmatter.category}</span><span class="meta-divider">/</span><time datetime={post.frontmatter.date}>{date(post.frontmatter.date)}</time></div><h3><a href={url(`writing/${post.frontmatter.slug}/`)}>{post.frontmatter.title}</a></h3><p>{post.frontmatter.description}</p><div class="post-tags">{post.frontmatter.tags.map((tag: string) => <span>{tag}</span>)}<span class="read-time">{post.frontmatter.readTime} min read</span></div></div>
+    <a class="post-arrow" href={url(`writing/${post.frontmatter.slug}/`)} aria-label={`Read ${post.frontmatter.title}`}><span aria-hidden="true">↗</span></a>
+  </article>)}
+</div>
