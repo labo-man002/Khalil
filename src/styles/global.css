@@ -1946,10 +1946,10 @@
 }
 .prose .article-diagram {
   margin: 34px 0 42px;
-  border: 1px solid #d8e1e9;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: 0;
   overflow: hidden;
-  background: #f6f8fb;
+  background: white;
 }
 .article-diagram > a {
   display: block;
@@ -1960,20 +1960,20 @@
   margin: 0;
   border: 0;
   border-radius: 0;
-  background: #f6f8fb;
+  background: white;
 }
 .article-diagram figcaption {
   padding: 20px 24px;
-  border-top: 1px solid #d8e1e9;
+  border-top: 1px solid var(--line);
   background: var(--paper);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
 }
 .article-diagram figcaption strong {
   display: block;
   margin-bottom: 5px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .article-diagram-links {
   display: flex;
@@ -1982,7 +1982,13 @@
   margin-top: 12px;
   font-size: 11px;
 }
+.article-diagram-hint {
+  display: none;
+}
 @media (max-width: 760px) {
   .prose .article-diagram { margin-block: 28px 34px; }
+  .article-diagram > a { overflow-x: auto; }
+  .prose .article-diagram img { min-width: 760px; max-width: none; }
   .article-diagram figcaption { padding: 16px; }
+  .article-diagram-hint { display: block; margin-bottom: 12px; font-size: 12px; }
 }

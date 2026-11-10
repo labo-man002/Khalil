@@ -1,182 +1,234 @@
-"""Draw the article's architecture and ownership diagrams as deterministic SVG.
+"""Render three readable whiteboard diagrams for the allocation article.
 
-Responsibilities and relationships follow job-scheduler/docs/architecture.md
-and backend/app/models at ba7dca7f7a82a89f8a34b252ff239a03e32dc1a5.
+Source: job-scheduler/docs/architecture.md and its SQLAlchemy models at
+ba7dca7f7a82a89f8a34b252ff239a03e32dc1a5. Requires fonttools[woff].
+Virgil lettering is outlined so SVGs and PNGs look the same on every machine.
 """
-from pathlib import Path
 from html import escape
+from math import atan2, cos, sin, pi
+from pathlib import Path
+import random
+
+from fontTools.ttLib import TTFont
+from fontTools.pens.svgPathPen import SVGPathPen
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'public/images/diagrams'
-OUT.mkdir(parents=True, exist_ok=True)
-INK = '#213547'
-MUTED = '#617386'
-BLUE = '#386c94'
-TEAL = '#22776b'
-GOLD = '#9c7331'
-PURPLE = '#735a96'
+FONT = TTFont(ROOT / 'assets/fonts/Virgil.woff2')
+GLYPHS = FONT.getGlyphSet()
+CMAP = FONT.getBestCmap()
+UPM = FONT['head'].unitsPerEm
+INK = '#283238'
+NOTE = '#365f82'
+MUTED = '#56616a'
 parts = []
+used = set()
+rng = random.Random(42)
 
-def text(x, y, lines, size=22, color=INK, weight=400, mono=False, anchor='start'):
-    if isinstance(lines, str):
-        lines = [lines]
-    family = 'Courier New, monospace' if mono else 'Arial, Helvetica, sans-serif'
-    for i, line in enumerate(lines):
-        parts.append(f'<text x="{x}" y="{y+i*(size+9)}" fill="{color}" font-family="{family}" font-size="{size}" font-weight="{weight}" text-anchor="{anchor}">{escape(line)}</text>')
 
-def rect(x, y, w, h, fill='white', stroke='#d8e1e9', radius=14, shadow=False, dash=False):
-    parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" fill="{fill}" stroke="{stroke}" stroke-width="1.5"'+(' filter="url(#shadow)"' if shadow else '')+(' stroke-dasharray="7 6"' if dash else '')+'/>')
+def width(label, size):
+    return sum(FONT['hmtx'][CMAP[ord(c)]][0] for c in label) * size / UPM
 
-def path(d, color='#8193a4', dashed=False, marker='arrow'):
-    parts.append(f'<path d="{d}" fill="none" stroke="{color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"'+(' stroke-dasharray="7 6"' if dashed else '')+(f' marker-end="url(#{marker})"' if marker else '')+'/>')
 
-def badge(x, y, label, color, width):
-    rect(x,y,width,30,fill=color,stroke=color,radius=6)
-    text(x+12,y+21,label,14,'white',700)
+def text(x, y, label, size=22, color=INK, anchor='start', max_width=None):
+    """Use the exact font outlines, retaining the label for accessibility/editing."""
+    w = width(label, size)
+    if max_width is not None and w > max_width:
+        raise ValueError(f'Text exceeds its box ({w:.0f} > {max_width}): {label}')
+    if anchor == 'middle':
+        x -= w / 2
+    elif anchor == 'end':
+        x -= w
+    parts.append(f'<g fill="{color}" aria-label="{escape(label, quote=True)}">')
+    for c in label:
+        code = ord(c)
+        used.add(code)
+        if c != ' ':
+            parts.append(f'<use href="#g{code}" transform="translate({x:.3f} {y}) scale({size/UPM:.6f} {-size/UPM:.6f})"/>')
+        x += FONT['hmtx'][CMAP[code]][0] * size / UPM
+    parts.append('</g>')
 
-def card(x, y, w, h, title, eyebrow, lines, color=INK, fill='white', tag=None, title_size=30):
-    rect(x,y,w,h,fill=fill,shadow=True)
-    parts.append(f'<path d="M{x+1} {y+18} V{y+h-18}" stroke="{color}" stroke-width="4" stroke-linecap="round"/>')
-    text(x+22,y+29,eyebrow.upper(),14,color,700)
-    text(x+22,y+65,title,title_size,color,700)
-    text(x+22,y+101,lines,19,MUTED)
-    if tag:
-        badge(x+w-154,y+17,tag,color,134)
 
-def start(w,h,title,description):
-    global parts
-    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img" aria-labelledby="title desc">',f'<title id="title">{escape(title)}</title><desc id="desc">{escape(description)}</desc>',
-    '<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="135%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#213547" flood-opacity=".045"/></filter><marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1 1L11 6L1 11Z" fill="#8193a4"/></marker><marker id="inherit" viewBox="0 0 14 14" refX="12" refY="7" markerWidth="11" markerHeight="11" orient="auto"><path d="M1 1L13 7L1 13Z" fill="white" stroke="#9c7331" stroke-width="1.5"/></marker></defs>',f'<rect width="{w}" height="{h}" fill="#f6f8fb"/>']
+def stroke(d, color=INK, dashed=False, weight=1.65, fill='none'):
+    parts.append(f'<path d="{d}" fill="{fill}" stroke="{color}" stroke-width="{weight}" stroke-linecap="round" stroke-linejoin="round"'+(' stroke-dasharray="7 6"' if dashed else '')+'/>')
 
-def save(name):
-    (OUT/name).write_text('\n'.join(parts+['</svg>'])+'\n')
 
-start(1640,1260,'Workload management: architecture and abstractions','Application coordination, process-local scheduling, transaction-local placement, independently replaceable policy interfaces, topology snapshots, and persistent state.')
-text(60,55,'ARCHITECTURE / IMPLEMENTED ALLOCATION PATH',16,MUTED,700)
-text(60,105,'Separate decisions. Explicit ownership.',38,INK,700)
-text(60,142,'Orchestration, queue policy, placement policy, topology, and the record of an allocation.',21,MUTED)
+def line(points, color=INK, dashed=False, head=None):
+    """Small deviations suggest a pen line without obscuring its direction."""
+    d = f'M {points[0][0]} {points[0][1]}'
+    for (ax, ay), (bx, by) in zip(points, points[1:]):
+        mx, my = (ax+bx)/2, (ay+by)/2
+        mx += rng.uniform(-.65, .65)
+        my += rng.uniform(-.65, .65)
+        d += f' Q {mx:.2f} {my:.2f} {bx} {by}'
+    stroke(d, color, dashed)
+    if head:
+        ax, ay = points[-2]
+        bx, by = points[-1]
+        angle = atan2(by-ay, bx-ax)
+        length = 12 if head == 'triangle' else 10
+        left = (bx-length*cos(angle-pi/6), by-length*sin(angle-pi/6))
+        right = (bx-length*cos(angle+pi/6), by-length*sin(angle+pi/6))
+        d = f'M {left[0]:.2f} {left[1]:.2f} L {bx} {by} L {right[0]:.2f} {right[1]:.2f}'
+        if head == 'triangle':
+            d += ' Z'
+        stroke(d, color, fill='white' if head == 'triangle' else 'none')
 
-# Request boundary and application coordination.
-card(60,225,400,160,'FastAPI routes','Request boundary',['Translate requests and domain errors','Own transaction commit / rollback'],BLUE)
-card(560,225,500,160,'Server','Application coordination',['Admission · quotas · cluster routing','Reservations · lifecycle · persistence'],TEAL,tag='request-scoped')
-card(1160,225,420,160,'PostgreSQL','Authoritative persisted state',['Jobs · resource units · allocations','Requirements · reservations · events'],'#4b6076')
-path('M 460 303 H 560')
-text(510,286,'delegate',16,MUTED,anchor='middle')
-path('M 1060 303 H 1160')
-text(1110,286,'read / flush',16,MUTED,anchor='middle')
-path('M 260 225 V 187 H 1370 V 225',dashed=True)
-rect(692,169,246,31,fill='#f6f8fb',stroke='#f6f8fb',radius=0)
-text(815,191,'commit / rollback',17,MUTED,anchor='middle')
 
-# Responsibility boundaries, followed by their interfaces and implementations.
-rect(40,465,610,565,fill='#eef4f9',stroke='#cddde9',radius=18)
-rect(730,465,870,565,fill='#eef6f2',stroke='#c9e0d7',radius=18)
-text(65,498,'01 / QUEUE ORDER',15,BLUE,700)
-text(755,498,'02 / RESOURCE SELECTION',15,TEAL,700)
-card(75,535,540,138,'Scheduler','Which job gets the next attempt?',['enqueue() · dequeue() · attempt_placement()'],BLUE,tag='process-local')
-card(765,535,800,138,'Placer','Which exact units fulfill the request?',['place(job) → resource units or no fit','Uses eligible, locked inventory; no database queries or commits.'],TEAL,tag='transaction-local')
-path('M 715 385 V 425 H 345 V 535')
-text(370,415,'cache per cluster / enqueue job reference',17,BLUE)
-path('M 905 385 V 425 H 1165 V 535')
-text(1165,415,'construct from current transaction inventory',17,TEAL,anchor='middle')
-path('M 615 603 H 765')
-text(690,586,'attempt',17,MUTED,anchor='middle')
+def box(x, y, w, h):
+    # One restrained, imperfect pen outline; no fill panels or shadows.
+    j = lambda: rng.uniform(-1.2, 1.2)
+    stroke(f'M {x+j():.2f} {y+j():.2f} Q {x+w/2:.2f} {y+j():.2f} {x+w+j():.2f} {y+j():.2f} '
+           f'Q {x+w+j():.2f} {y+h/2:.2f} {x+w+j():.2f} {y+h+j():.2f} '
+           f'Q {x+w/2:.2f} {y+h+j():.2f} {x+j():.2f} {y+h+j():.2f} '
+           f'Q {x+j():.2f} {y+h/2:.2f} {x+j():.2f} {y+j():.2f} Z', fill='white')
 
-card(75,730,255,150,'SortStrategy','Abstract interface',['key(job)','sort(queue)'],GOLD)
-card(370,730,245,150,'PendingJob','Queued reference',['job_id','priority'],BLUE)
-path('M 202 673 V 730')
-text(215,710,'orders with',16,BLUE)
-path('M 493 673 V 730')
-text(506,710,'stores refs',16,BLUE)
-rect(75,920,125,57,stroke='#d8c6a7',fill='#fffdf8',radius=9)
-rect(220,920,175,57,stroke='#d8c6a7',fill='#fffdf8',radius=9)
-text(137,955,'FifoSort',18,GOLD,700,anchor='middle')
-text(307,955,'PrioritySort',18,GOLD,700,anchor='middle')
-path('M 137 920 V 901 H 190 V 880',GOLD,marker='inherit')
-path('M 307 920 V 901 H 215 V 880',GOLD,marker='inherit')
 
-card(765,730,360,150,'PlaceAlgorithm','Abstract interface',['select(candidates, job, view)','rank(candidates, job, view)'],GOLD)
-card(1205,730,360,150,'Topology','Cluster configuration',['build_view(eligible_nodes)','Ring · Mesh · 2D / 3D Torus'],PURPLE)
-path('M 945 673 V 730')
-text(958,710,'select / rank',16,TEAL)
-path('M 1385 673 V 730')
-text(1398,710,'build view',16,PURPLE)
-rect(765,920,165,57,stroke='#d8c6a7',fill='#fffdf8',radius=9)
-rect(950,920,175,57,stroke='#d8c6a7',fill='#fffdf8',radius=9)
-text(847,955,'PackAlgorithm',17,GOLD,700,anchor='middle')
-text(1037,955,'SpreadAlgorithm',17,GOLD,700,anchor='middle')
-path('M 847 920 V 901 H 930 V 880',GOLD,marker='inherit')
-path('M 1037 920 V 901 H 960 V 880',GOLD,marker='inherit')
-rect(1205,920,360,96,fill='#f9f7fc',stroke='#d4cce1',radius=10)
-text(1225,951,'TopologyView',25,PURPLE,700)
-text(1225,978,'neighbors(node) · distance(a, b)',17,MUTED)
-text(1225,1002,'Eligible nodes · current occupancy',16,MUTED)
-path('M 1385 880 V 920',PURPLE)
-text(1400,906,'creates',15,PURPLE)
-path('M 1125 797 H 1165 V 962 H 1205',PURPLE,dashed=True)
-rect(1135,840,60,48,fill='#eef6f2',stroke='#eef6f2',radius=0)
-text(1165,857,'reads',15,PURPLE,anchor='middle')
-text(1165,878,'view',15,PURPLE,anchor='middle')
+def component(x, y, w, h, title, lines, size=22, title_size=26):
+    box(x, y, w, h)
+    text(x+18, y+36, title, title_size, max_width=w-36)
+    for i, label in enumerate(lines):
+        text(x+18, y+73+i*28, label, size, MUTED, max_width=w-36)
 
-# Explanatory callouts emphasize design consequences rather than extra classes.
-rect(60,1070,475,103,fill='white',radius=12)
-rect(552,1070,505,103,fill='white',radius=12)
-rect(1074,1070,506,103,fill='white',radius=12)
-text(80,1098,'REFERENCE LIFETIME',13,BLUE,700)
-text(80,1130,['The queue keeps IDs and priority.','The ORM Job is loaded for the current session.'],17,MUTED)
-text(572,1098,'REPLACEABLE POLICIES',13,GOLD,700)
-text(572,1130,['Queue order and resource ranking can change','independently through their policy interfaces.'],17,MUTED)
-text(1094,1098,'ONE ALLOCATION BOUNDARY',13,TEAL,700)
-text(1094,1130,['The Server records the assignment.','The API commits or rolls back the changes.'],17,MUTED)
-path('M 65 1210 H 103',marker='arrow')
-text(115,1216,'delegation / use',15,MUTED)
-path('M 320 1210 H 358',dashed=True)
-text(370,1216,'secondary dependency / view',15,MUTED)
-path('M 670 1210 H 708',GOLD,marker='inherit')
-text(720,1216,'implementation of an abstract policy',15,MUTED)
-text(1580,1216,'labo-man002/job-scheduler',15,MUTED,mono=True,anchor='end')
-save('job-allocation-flow.svg')
 
-# A complementary, focused view of demand, fulfillment, and hardware ownership.
-start(1500,910,'A request and its assignment are separate facts','Illustrative job 42 requests two GPUs. An allocation identifies GPU units 87 and 91 on separate nodes, preserving the distinction between requested quantities and actual ownership.')
-text(55,52,'DATA ABSTRACTIONS / AN ILLUSTRATIVE TWO-GPU ASSIGNMENT',16,MUTED,700)
-text(55,101,'Demand → assignment → exact hardware units',34,INK,700)
+def label(x, y, value, size=19):
+    w = width(value, size)
+    parts.append(f'<rect x="{x-w/2-7:.2f}" y="{y-size}" width="{w+14:.2f}" height="{size+7}" fill="white"/>')
+    text(x, y, value, size, anchor='middle')
 
-for x,w,heading,color in [(40,390,'01 / REQUEST',BLUE),(475,470,'02 / FULFILLMENT',TEAL),(990,470,'03 / INVENTORY',PURPLE)]:
-    rect(x,150,w,580,fill={'01 / REQUEST':'#eef4f9','02 / FULFILLMENT':'#eef6f2','03 / INVENTORY':'#f4f1f9'}[heading],stroke='#d7e0e8',radius=18)
-    text(x+25,187,heading,15,color,700)
 
-card(65,225,340,160,'Job','Submitted work',['job_id: 42','Owner · priority · lifecycle state'],BLUE)
-card(65,485,340,160,'ResourceRequirement','Demand',['resource_type: GPU','amount: 2'],BLUE,title_size=26)
-path('M 235 385 V 485')
-text(250,442,'requests',18,BLUE)
+def underline(x, y, length):
+    stroke(f'M {x} {y} Q {x+length*.45} {y+1.5} {x+length} {y-.5}', NOTE, weight=1.7)
 
-card(500,225,420,160,'Allocation','Assignment record',['job_id: 42','Begin / end · allocation status'],TEAL)
-card(500,485,420,160,'AllocationNode × 2','One link per assigned unit',['link A · resource_node_id: 87','link B · resource_node_id: 91'],TEAL)
-path('M 405 305 H 500')
-text(452,287,'job_id',16,MUTED,mono=True,anchor='middle')
-path('M 710 385 V 485')
-text(725,442,'contains links',18,TEAL)
 
-rect(1015,225,420,175,fill='white',shadow=True)
-text(1040,259,'Node 12',27,PURPLE,700)
-text(1040,292,'Physical compute host',17,MUTED)
-rect(1040,313,370,60,fill='#f4f1f9',stroke='#d4cce1',radius=8)
-text(1058,339,'ResourceNode 87',21,PURPLE,700)
-text(1058,361,'GPU · resource_status: ALLOCATED',16,MUTED)
-rect(1015,470,420,175,fill='white',shadow=True)
-text(1040,504,'Node 13',27,PURPLE,700)
-text(1040,537,'Physical compute host',17,MUTED)
-rect(1040,558,370,60,fill='#f4f1f9',stroke='#d4cce1',radius=8)
-text(1058,584,'ResourceNode 91',21,PURPLE,700)
-text(1058,606,'GPU · resource_status: ALLOCATED',16,MUTED)
-path('M 920 582 H 963 V 345 H 1040',PURPLE)
-path('M 920 610 H 1000 V 588 H 1040',PURPLE)
-text(971,432,'unit IDs',15,PURPLE,anchor='middle')
+def start(height, title, description, subtitle):
+    global parts, used, rng
+    used = set()
+    rng = random.Random(42)
+    parts = ['<rect width="1100" height="'+str(height)+'" fill="white"/>']
+    text(40, 50, title, 30, max_width=1020)
+    text(40, 84, subtitle, 20, MUTED, max_width=1020)
+    return height, title, description
 
-rect(60,770,1380,81,fill='white',radius=12)
-text(85,801,'The request remains “2 GPUs”. The allocation records which two.',25,INK,700)
-text(85,831,'Those same resource links support inspection, completion, cancellation, and precise release.',19,MUTED)
-text(1440,884,'Illustrative IDs · relationships follow the actual models',15,MUTED,anchor='end')
-save('resource-ownership.svg')
-print('Rendered architecture abstractions and resource ownership SVGs.')
+
+def save(name, meta):
+    height, title, description = meta
+    definitions = []
+    for code in sorted(used):
+        pen = SVGPathPen(GLYPHS)
+        GLYPHS[CMAP[code]].draw(pen)
+        definitions.append(f'<path id="g{code}" d="{pen.getCommands()}"/>')
+    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="{height}" viewBox="0 0 1100 {height}" role="img" aria-labelledby="title desc">',
+           f'<title id="title">{escape(title)}</title>', f'<desc id="desc">{escape(description)}</desc>',
+           '<metadata>Lettering: Virgil by Ellinor Rapp. SIL Open Font License 1.1. https://github.com/excalidraw/virgil</metadata>',
+           '<defs>'] + definitions + ['</defs>'] + parts + ['</svg>']
+    (OUT/name).write_text('\n'.join(svg)+'\n')
+
+
+OUT.mkdir(parents=True, exist_ok=True)
+
+# 1. Overall responsibilities. Policy implementations get their own view below.
+m = start(910, '1. How the components work together',
+          'API routes delegate to a request-scoped Server, which coordinates the process-local Scheduler and transaction-local Placer. The Server queries and records state; API routes commit or roll back. The Placer builds a topology view from eligible inventory.',
+          'The implemented allocation path, with each component doing one kind of work.')
+line([(165,160),(165,120),(955,120),(955,160)], dashed=True, head='arrow')
+label(560,120,'commit / rollback')
+line([(290,225),(420,225)], head='arrow')
+label(355,210,'delegate')
+line([(720,225),(850,225)], head='arrow')
+label(785,210,'read / flush')
+line([(490,290),(490,350),(248,350),(248,440)], head='arrow')
+label(310,338,'enqueue / dequeue')
+line([(650,290),(650,350),(853,350),(853,440)], head='arrow')
+label(850,338,'build with eligible inventory',18)
+line([(455,510),(645,510)], head='arrow')
+label(550,494,'attempt(Job)',18)
+line([(852,585),(852,720)], head='arrow')
+label(852,658,'build_view(nodes)',19)
+component(40,160,250,130,'API routes',['Request session','Commit / rollback'],20)
+component(420,160,300,130,'Server',['Admission + lifecycle','Records allocations'],20)
+component(850,160,210,130,'PostgreSQL',['Jobs + allocations','Inventory + events'],18,title_size=24)
+text(420,146,'Request-scoped',19,NOTE)
+text(40,418,'Process-local',20,NOTE)
+text(645,418,'Transaction-local',20,NOTE)
+component(40,440,415,145,'Scheduler',['Choose the next job to attempt','PendingJob: job_id + priority','FIFO or priority ordering'],20)
+component(645,440,415,145,'Placer',['Choose exact resource units','Eligible, row-locked inventory','Returns units, or no fit'],20)
+component(645,720,415,130,'Topology + TopologyView',['Cluster grid -> eligible-node view','Neighbors + distances for policies'],20,title_size=24)
+text(40,741,'What crosses a request boundary?',22,NOTE)
+underline(40,751,360)
+text(40,790,'The queue retains IDs and priority.',20)
+text(40,819,'Job objects and locks belong to the',20)
+text(40,848,'current database session.',20)
+text(40,886,'This models allocations; workload execution belongs to a separate layer.',17,MUTED)
+save('job-allocation-flow.svg', m)
+
+# 2. Parallel policy interfaces make the independent variation points explicit.
+m = start(1040, '2. Two decisions, two policy interfaces',
+          'Scheduler uses the abstract SortStrategy, implemented by FifoSort and PrioritySort. Placer uses the abstract PlaceAlgorithm, implemented by PackAlgorithm and SpreadAlgorithm. Topology builds a TopologyView; the placement algorithm reads its distance information.',
+          'Queue ordering can change independently of the physical resource choice.')
+text(80,150,'Which job next?',25,NOTE)
+underline(80,161,193)
+text(630,150,'Which resources?',25,NOTE)
+underline(630,161,222)
+line([(275,290),(275,380)], head='arrow')
+label(275,339,'uses',20)
+line([(825,290),(825,380)], head='arrow')
+label(825,339,'uses',20)
+line([(145,650),(145,590),(255,590),(255,515)], head='triangle')
+line([(400,650),(400,590),(295,590),(295,515)], head='triangle')
+line([(700,650),(700,590),(805,590),(805,515)], head='triangle')
+line([(955,650),(955,590),(845,590),(845,515)], head='triangle')
+label(275,563,'implements',19)
+label(825,563,'implements',19)
+line([(470,900),(630,900)], head='arrow')
+label(550,885,'creates',19)
+line([(1020,460),(1080,460),(1080,900),(1020,900)], dashed=True, head='arrow')
+text(1068,791,'reads',18,anchor='end')
+text(1068,816,'view',18,anchor='end')
+component(80,190,390,100,'Scheduler',['Owns queue order'],21)
+component(630,190,390,100,'Placer',['Owns resource selection'],21)
+text(80,363,'abstract policy',19,NOTE)
+text(630,363,'abstract policy',19,NOTE)
+component(80,380,390,135,'SortStrategy',['key(job)','sort(queue)'],21)
+component(630,380,390,135,'PlaceAlgorithm',['select(candidates, job, view)','rank(candidates, job, view)'],20)
+component(40,650,210,90,'FifoSort',['Arrival order'],19,title_size=23)
+component(290,650,220,90,'PrioritySort',['Priority, then FIFO'],18,title_size=23)
+component(590,650,220,90,'PackAlgorithm',['Prefer nearby'],19,title_size=22)
+component(850,650,210,90,'SpreadAlgorithm',['Prefer further away'],17,title_size=22)
+component(80,835,390,125,'Topology',['Cluster grid configuration','build_view(eligible_nodes)'],20)
+component(630,835,390,125,'TopologyView',['neighbors(node), distance(a, b)','Eligible nodes + occupancy'],19,title_size=25)
+text(40,1014,'Solid arrow: uses / creates.  Hollow arrow: implements.  Dashed arrow: reads the view.',18,MUTED)
+save('policy-abstractions.svg', m)
+
+# 3. A concrete example of the real request-versus-fulfillment model.
+m = start(910, '3. From a quantity to the exact GPU units',
+          'Illustrative job 42 requests two GPUs through ResourceRequirement. An Allocation records its assignment. Two separate AllocationNode records identify GPU ResourceNode 87 on physical Node 12 and ResourceNode 91 on Node 13. The same unit links support precise release.',
+          'One request for two GPUs; two allocation links remember which GPUs it received.')
+line([(340,235),(430,235)], head='arrow')
+label(385,218,'job_id',18)
+line([(190,295),(190,445)], head='arrow')
+label(190,378,'asks for',20)
+line([(585,295),(585,350),(390,350),(390,742),(430,742)], head='arrow')
+line([(390,502),(430,502)], head='arrow')
+text(602,333,'records unit links',18)
+component(40,175,300,120,'Job',['job_id: 42','Owner + priority + state'],20)
+component(430,175,310,120,'Allocation',['job_id: 42','Assignment status + interval'],19)
+component(40,445,300,150,'ResourceRequirement',['resource_type: GPU','amount: 2'],21,title_size=24)
+component(430,445,310,115,'AllocationNode',['resource_node_id: 87'],20,title_size=25)
+component(430,685,310,115,'AllocationNode',['resource_node_id: 91'],20,title_size=25)
+for y,node,unit in [(400,12,87),(640,13,91)]:
+    box(820,y,240,160)
+    text(836,y+36,f'Node {node}',25)
+    box(836,y+60,208,80)
+    text(848,y+90,f'ResourceNode {unit}',20,max_width=184)
+    text(848,y+117,'GPU: ALLOCATED',18,max_width=184)
+line([(740,502),(836,502)], head='arrow')
+line([(740,742),(836,742)], head='arrow')
+text(40,673,'The request stays a quantity.',22,NOTE)
+underline(40,684,306)
+text(40,723,'AllocationNode links remember',20)
+text(40,752,'which units were assigned.',20)
+text(40,858,'Completion follows the same links to release GPUs 87 and 91.',21)
+text(1060,891,'Example IDs; relationships follow the actual models.',16,MUTED,anchor='end')
+save('resource-ownership.svg', m)
+print('Rendered three whiteboard diagrams with outlined, readable lettering.')
