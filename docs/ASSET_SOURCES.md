@@ -30,6 +30,12 @@ The original diagrams are explicitly identified as historical, consistent with t
 
 The ERD does not turn native enum columns into fictitious lookup tables, and it does not claim a database-enforced unique Job–Allocation relationship that the schema does not declare. `resource_usage` is represented as an existing table, not as an implemented metering service.
 
-## Compact article architecture
+## Article architecture and ownership diagrams
 
-`docs/diagrams/job-allocation-flow.dot` is the source for the compact article diagram. It shows API transaction ownership, Server coordination, scheduling, placement, and stored resource assignments from the implemented architecture. Render it with `dot -Tsvg docs/diagrams/job-allocation-flow.dot -o public/images/diagrams/job-allocation-flow.svg`. The PNG is a raster export of the same SVG for social previews.
+- Source: `docs/architecture.md` and the actual SQLAlchemy models in the public project, pinned to the source commit above.
+- Renderer: `scripts/render-article-diagrams.py`, a deterministic, hand-positioned SVG layout. Run `python3 scripts/render-article-diagrams.py` to regenerate both figures.
+- Architecture output: `public/images/diagrams/job-allocation-flow.svg`. This shows request, process, and transaction lifetimes; separate queue and placement policy interfaces; concrete policy implementations; topology configuration versus its eligible-node view; and API transaction ownership.
+- Ownership output: `public/images/diagrams/resource-ownership.svg`. This is a focused example of the persisted request/fulfillment/inventory model, not a complete ERD. Two `AllocationNode` records point to two individual `ResourceNode` units. IDs are illustrative, and the figure adds no uniqueness constraints.
+- Matching PNG files are 2400-pixel-wide raster exports of the SVGs, made with Sharp. They support downloads and the article's social preview.
+
+The article figures replace the earlier simplified Graphviz flowchart. The complete class architecture and current-model ERDs remain available in the Work case study.

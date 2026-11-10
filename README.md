@@ -69,3 +69,5 @@ There are no analytics, cookies, accounts, contact-form storage, or runtime secr
 ## Technical diagrams
 
 Run `python3 scripts/render-diagrams.py` with Graphviz installed to regenerate the class architecture and current-model ERD SVGs. The checked-in `docs/diagrams/schema-snapshot.json` records the source commit and exact ORM columns and foreign keys. Original project ERDs are labeled as historical because their enum lookup-table design differs from the current models. See `docs/ASSET_SOURCES.md` for image sources.
+
+Run `python3 scripts/render-article-diagrams.py` for the article's hand-positioned architecture and ownership SVGs. Its illustrated article uses `wideDiagrams: true` in frontmatter to give figures the page width while keeping prose at a readable measure. Full-size SVG and PNG links accompany each figure.

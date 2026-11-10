@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="910" viewBox="0 0 1500 910" role="img" aria-labelledby="title desc">
+<title id="title">A request and its assignment are separate facts</title><desc id="desc">Illustrative job 42 requests two GPUs. An allocation identifies GPU units 87 and 91 on separate nodes, preserving the distinction between requested quantities and actual ownership.</desc>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="135%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#213547" flood-opacity=".045"/></filter><marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1 1L11 6L1 11Z" fill="#8193a4"/></marker><marker id="inherit" viewBox="0 0 14 14" refX="12" refY="7" markerWidth="11" markerHeight="11" orient="auto"><path d="M1 1L13 7L1 13Z" fill="white" stroke="#9c7331" stroke-width="1.5"/></marker></defs>
+<rect width="1500" height="910" fill="#f6f8fb"/>
+<text x="55" y="52" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" text-anchor="start">DATA ABSTRACTIONS / AN ILLUSTRATIVE TWO-GPU ASSIGNMENT</text>
+<text x="55" y="101" fill="#213547" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" text-anchor="start">Demand → assignment → exact hardware units</text>
+<rect x="40" y="150" width="390" height="580" rx="18" fill="#eef4f9" stroke="#d7e0e8" stroke-width="1.5"/>
+<text x="65" y="187" fill="#386c94" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="start">01 / REQUEST</text>
+<rect x="475" y="150" width="470" height="580" rx="18" fill="#eef6f2" stroke="#d7e0e8" stroke-width="1.5"/>
+<text x="500" y="187" fill="#22776b" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="start">02 / FULFILLMENT</text>
+<rect x="990" y="150" width="470" height="580" rx="18" fill="#f4f1f9" stroke="#d7e0e8" stroke-width="1.5"/>
+<text x="1015" y="187" fill="#735a96" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="start">03 / INVENTORY</text>
+<rect x="65" y="225" width="340" height="160" rx="14" fill="white" stroke="#d8e1e9" stroke-width="1.5" filter="url(#shadow)"/>
+<path d="M66 243 V367" stroke="#386c94" stroke-width="4" stroke-linecap="round"/>
+<text x="87" y="254" fill="#386c94" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" text-anchor="start">SUBMITTED WORK</text>
+<text x="87" y="290" fill="#386c94" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="start">Job</text>
+<text x="87" y="326" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">job_id: 42</text>
+<text x="87" y="354" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">Owner · priority · lifecycle state</text>
+<rect x="65" y="485" width="340" height="160" rx="14" fill="white" stroke="#d8e1e9" stroke-width="1.5" filter="url(#shadow)"/>
+<path d="M66 503 V627" stroke="#386c94" stroke-width="4" stroke-linecap="round"/>
+<text x="87" y="514" fill="#386c94" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" text-anchor="start">DEMAND</text>
+<text x="87" y="550" fill="#386c94" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" text-anchor="start">ResourceRequirement</text>
+<text x="87" y="586" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">resource_type: GPU</text>
+<text x="87" y="614" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">amount: 2</text>
+<path d="M 235 385 V 485" fill="none" stroke="#8193a4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="250" y="442" fill="#386c94" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start">requests</text>
+<rect x="500" y="225" width="420" height="160" rx="14" fill="white" stroke="#d8e1e9" stroke-width="1.5" filter="url(#shadow)"/>
+<path d="M501 243 V367" stroke="#22776b" stroke-width="4" stroke-linecap="round"/>
+<text x="522" y="254" fill="#22776b" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" text-anchor="start">ASSIGNMENT RECORD</text>
+<text x="522" y="290" fill="#22776b" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="start">Allocation</text>
+<text x="522" y="326" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">job_id: 42</text>
+<text x="522" y="354" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">Begin / end · allocation status</text>
+<rect x="500" y="485" width="420" height="160" rx="14" fill="white" stroke="#d8e1e9" stroke-width="1.5" filter="url(#shadow)"/>
+<path d="M501 503 V627" stroke="#22776b" stroke-width="4" stroke-linecap="round"/>
+<text x="522" y="514" fill="#22776b" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" text-anchor="start">ONE LINK PER ASSIGNED UNIT</text>
+<text x="522" y="550" fill="#22776b" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="start">AllocationNode × 2</text>
+<text x="522" y="586" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">link A · resource_node_id: 87</text>
+<text x="522" y="614" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">link B · resource_node_id: 91</text>
+<path d="M 405 305 H 500" fill="none" stroke="#8193a4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="452" y="287" fill="#617386" font-family="Courier New, monospace" font-size="16" font-weight="400" text-anchor="middle">job_id</text>
+<path d="M 710 385 V 485" fill="none" stroke="#8193a4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="725" y="442" fill="#22776b" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start">contains links</text>
+<rect x="1015" y="225" width="420" height="175" rx="14" fill="white" stroke="#d8e1e9" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="1040" y="259" fill="#735a96" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" text-anchor="start">Node 12</text>
+<text x="1040" y="292" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start">Physical compute host</text>
+<rect x="1040" y="313" width="370" height="60" rx="8" fill="#f4f1f9" stroke="#d4cce1" stroke-width="1.5"/>
+<text x="1058" y="339" fill="#735a96" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" text-anchor="start">ResourceNode 87</text>
+<text x="1058" y="361" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start">GPU · resource_status: ALLOCATED</text>
+<rect x="1015" y="470" width="420" height="175" rx="14" fill="white" stroke="#d8e1e9" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="1040" y="504" fill="#735a96" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" text-anchor="start">Node 13</text>
+<text x="1040" y="537" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start">Physical compute host</text>
+<rect x="1040" y="558" width="370" height="60" rx="8" fill="#f4f1f9" stroke="#d4cce1" stroke-width="1.5"/>
+<text x="1058" y="584" fill="#735a96" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" text-anchor="start">ResourceNode 91</text>
+<text x="1058" y="606" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start">GPU · resource_status: ALLOCATED</text>
+<path d="M 920 582 H 963 V 345 H 1040" fill="none" stroke="#735a96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 920 610 H 1000 V 588 H 1040" fill="none" stroke="#735a96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="971" y="432" fill="#735a96" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="400" text-anchor="middle">unit IDs</text>
+<rect x="60" y="770" width="1380" height="81" rx="12" fill="white" stroke="#d8e1e9" stroke-width="1.5"/>
+<text x="85" y="801" fill="#213547" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" text-anchor="start">The request remains “2 GPUs”. The allocation records which two.</text>
+<text x="85" y="831" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start">Those same resource links support inspection, completion, cancellation, and precise release.</text>
+<text x="1440" y="884" fill="#617386" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="400" text-anchor="end">Illustrative IDs · relationships follow the actual models</text>
+</svg>

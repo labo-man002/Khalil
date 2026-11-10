@@ -8,6 +8,7 @@ category: Architecture story
 tags: [Architecture, Placement, Systems]
 readTime: 4
 image: images/diagrams/job-allocation-flow.png
+wideDiagrams: true
 ---
 
 “I need two GPUs.”
@@ -18,9 +19,10 @@ I built my [workload-management project](https://github.com/labo-man002/job-sche
 
 To follow one request through it, imagine a job asking for two GPUs when only one is free. The job and resource IDs in this example are illustrative.
 
-<a href="../../images/diagrams/job-allocation-flow.svg" target="_blank" rel="noopener noreferrer"><img src="../../images/diagrams/job-allocation-flow.svg" alt="Application architecture: API routes delegate to the Server, which coordinates the Scheduler, Placer, and stored state. Placement uses topology and Pack or Spread policies. API routes own commit and rollback." width="1412" height="653" /></a>
-
-<p class="image-caption">The main responsibilities in the implemented application. <a href="../../images/diagrams/job-allocation-flow.svg" target="_blank" rel="noopener noreferrer">Open the full-size diagram ↗</a></p>
+<figure class="article-diagram">
+  <a href="../../images/diagrams/job-allocation-flow.svg" target="_blank" rel="noopener noreferrer" aria-label="Open the architecture diagram at full size"><img src="../../images/diagrams/job-allocation-flow.svg" alt="The request-scoped Server coordinates a process-local Scheduler and transaction-local Placer. SortStrategy separates FIFO and priority ordering; PlaceAlgorithm separates Pack and Spread placement. Topology builds an eligible-node view used by the placement policy. API routes commit the persisted assignment." width="1640" height="1260" /></a>
+  <figcaption><strong>01 / Architecture and policy boundaries.</strong> Queue ordering and resource selection depend on separate policy interfaces. The queue retains lightweight job references; placement uses the current transaction’s locked inventory. Topology configuration produces a view for the policy to read. The Server records the decision, and the API owns commit or rollback. <span class="article-diagram-links"><a href="../../images/diagrams/job-allocation-flow.svg" target="_blank" rel="noopener noreferrer">Full-size SVG ↗</a><a href="../../images/diagrams/job-allocation-flow.png" download>Download PNG ↓</a></span></figcaption>
+</figure>
 
 ## A place in the queue
 
@@ -58,9 +60,10 @@ That record connects the decisions to the rest of the job’s lifecycle. It give
 
 The resource-state changes, allocation records, and job-state update are committed together. In this model, the job then appears as running: resources have been assigned to it.
 
-<img src="../../images/project/job-detail.png" alt="A job detail page from the project showing requirements, assigned resource units, and lifecycle history" width="1440" height="900" loading="lazy" />
-
-<p class="image-caption">An actual job detail view from the project. The screenshot shows a separate example.</p>
+<figure class="article-diagram">
+  <a href="../../images/diagrams/resource-ownership.svg" target="_blank" rel="noopener noreferrer" aria-label="Open the resource ownership diagram at full size"><img src="../../images/diagrams/resource-ownership.svg" alt="Illustrative job 42 requests two GPUs through ResourceRequirement. An Allocation records the assignment, with two AllocationNode records linking to GPU ResourceNode 87 on Node 12 and ResourceNode 91 on Node 13. Requested quantities and actual hardware ownership remain separate." width="1500" height="910" loading="lazy" /></a>
+  <figcaption><strong>02 / Requested quantities, assigned units.</strong> A focused view of the persisted model: ResourceRequirement expresses demand, Allocation records fulfillment, and one AllocationNode link identifies each assigned ResourceNode. A physical Node contains those resource units. The IDs illustrate the story; the complete ERD is in the <a href="../../work/topology-aware-allocation/#diagram-heading">project case study</a>. <span class="article-diagram-links"><a href="../../images/diagrams/resource-ownership.svg" target="_blank" rel="noopener noreferrer">Full-size SVG ↗</a><a href="../../images/diagrams/resource-ownership.png" download>Download PNG ↓</a></span></figcaption>
+</figure>
 
 ## Giving the resources back
 
