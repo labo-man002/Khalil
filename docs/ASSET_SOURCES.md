@@ -45,3 +45,7 @@ The ERD does not turn native enum columns into fictitious lookup tables, and it 
 The lettering uses Virgil by Ellinor Rapp, obtained from https://github.com/excalidraw/virgil (`Virgil.woff2`, Git blob `cb222253f5e018cab62d6a05ad407faa1fdd408a`). The unchanged font and its SIL Open Font License 1.1 are stored in `assets/fonts/`. Glyph outlines in the SVGs preserve the lettering in browsers and raster exports without runtime font downloads. SVG titles, descriptions, and labels retain the meaning for accessibility.
 
 These focused sketches explain separate parts of the allocation story. The complete class architecture and current-model ERDs remain available in the Work case study.
+
+## Interactive allocation story
+
+`src/pages/stories/inside-an-allocation.astro` contains original SVG views authored for this site (request, network transit, cluster selection, coordinate layouts, queue, placement, leaf–spine reachability, ownership). Binary transit is a visual metaphor. Sound uses optional Web Audio synthesis; there are no external audio recordings. The four-node example follows the article, verified against job-scheduler commit `ba7dca7f7a82a89f8a34b252ff239a03e32dc1a5`. The interactive policy model in `src/lib/request-story.mjs` illustrates that fixed mesh-row example, not the general scheduler or fabric allocator.

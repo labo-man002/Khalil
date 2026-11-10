@@ -17,6 +17,8 @@ A user can describe the request in four words. The application still has several
 
 I built my [workload-management project](https://github.com/labo-man002/job-scheduler) to make those decisions visible. It models requests, allocations, and job states; workload execution belongs to a separate layer.
 
+Prefer a visual journey? [Follow the request through an interactive allocation story](../../stories/inside-an-allocation/).
+
 ## A place in the queue
 
 Consider four eligible machines, or Nodes, arranged in one row of a mesh. Each has one GPU. A new job, Job 42, asks for any two GPU units. Its client and quota checks have passed. The IDs and resource states in this example are illustrative.

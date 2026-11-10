@@ -42,6 +42,13 @@ This is the durable record of Khalil Ben Maaoui's choices for the portfolio and 
 - Introduce leaf–spine through the practical difference between a free GPU and a reachable candidate. Its query uses the same Node/GPU identities; a down NIC can exclude a free unit. Keep geometry, reachability, and allocation ownership clearly described by their roles.
 - End the article with the machine-state consequence: releasing a job's ownership does not make a GPU on a DOWN node available again.
 
+## Cinematic allocation story
+
+- Add a separate scroll-led interactive story at `/stories/inside-an-allocation/`, retaining the article as the reading version. Khalil requested a cinematic journey through a request, gateway, queue, and topology-aware placement.
+- Use authored SVG machine views, restrained binary transit, and optional user-enabled synthesized sound. Respect reduced motion; no autoplay audio.
+- Ground the flow in current behaviour: smallest-fitting total-capacity cluster, FIFO/priority order, strict capacity wait, current inventory, Pack/Spread, exact ownership and release. Do not imply predictive scoring, starvation prevention, or workload execution.
+- Present leaf–spine reachability as a separate candidate-discovery lens, not as an automatic step inside the coordinate Placer. Example identities are illustrative.
+
 ## Diagram style and detail
 
 The selected style is **a whiteboard sketch with slightly hand-drawn boxes and arrows, and neat lettering**.
