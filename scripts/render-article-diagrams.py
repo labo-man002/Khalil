@@ -150,7 +150,7 @@ def save(name, meta):
 OUT.mkdir(parents=True, exist_ok=True)
 
 # 1. Overall responsibilities. Policy implementations get their own view below.
-m = start(910, '1. How the components work together',
+m = start(910, 'How the components work together',
           'API routes delegate to a request-scoped Server, which coordinates the process-local Scheduler and transaction-local Placer. The Server queries and records state; API routes commit or roll back. The Placer builds a topology view from eligible inventory.',
           'The implemented allocation path, with each component doing one kind of work.')
 line([(165,160),(165,120),(955,120),(955,160)], dashed=True, head='arrow')
@@ -185,7 +185,7 @@ text(40,886,'This models allocations; workload execution belongs to a separate l
 save('job-allocation-flow.svg', m)
 
 # 2. Parallel policy interfaces make the independent variation points explicit.
-m = start(1040, '2. Two decisions, two policy interfaces',
+m = start(1040, 'Two decisions, two policy interfaces',
           'Scheduler uses the abstract SortStrategy, implemented by FifoSort and PrioritySort. Placer uses the abstract PlaceAlgorithm, implemented by PackAlgorithm and SpreadAlgorithm. Topology builds a TopologyView; the placement algorithm reads its distance information.',
           'Queue ordering can change independently of the physical resource choice.')
 text(80,150,'Which job next?',25,NOTE)
@@ -223,7 +223,7 @@ text(40,1014,'Solid arrow: uses / creates.  Hollow arrow: implements.  Dashed ar
 save('policy-abstractions.svg', m)
 
 # 3. Supported grid geometries and the common view consumed during placement.
-m = start(1220, '3. Coordinate layouts, one topology interface',
+m = start(1220, 'Coordinate layouts, one topology interface',
           'Illustrative supported layouts: a four-position wrapping ring; a 3 by 3 non-wrapping mesh; a 3 by 3 wrapping torus; and three layers of a 3 by 3 by 3 torus. In the mesh, coordinates [0,0] and [2,0] are two steps apart; with wrapping they are one step apart. Selected wrap and cross-layer links illustrate the repeating pattern. Placer builds a TopologyView from the cluster configuration and eligible nodes; Pack and Spread read its distances.',
           'Node coordinates and cluster settings define neighbours and distance.')
 
@@ -294,18 +294,18 @@ text(40,1198,'Illustrative layouts; eligible nodes determine each placement view
 save('cluster-topologies.svg', m)
 
 # 4. Leaf-spine wiring and discovery using the merged Node/NIC/GPU model.
-m = start(1070, '4. Leaf-spine topology',
-          'Two spine switches connect two leaves. Leaf 1 attaches existing compute Nodes 41 and 42; Leaf 2 attaches Node 43. Each Node exposes nic0 and owns four ResourceNode GPU units. Node 41 has four free units; Nodes 42 and 43 each have two free and two allocated units. Blue highlights one usable route from the chosen root, spine-1, through Leaf 2 to Node 43. GpuCandidateFinder combines free GPU units with operational paths and returns node IDs, free GPU IDs, and paths, sorted by latency and Node ID.',
+m = start(1070, 'Leaf-spine topology',
+          'Two spine switches connect two leaves. Leaf 1 attaches existing compute Nodes 12 and 13; Leaf 2 attaches Node 14. They own free GPU units 87, 91, and 95 respectively. Node 14 has a down NIC, so GPU 95 is absent from the query result even though its resource unit remains free. Blue highlights one usable route from spine-1 through Leaf 1 to Node 12. GpuCandidateFinder returns the reachable nodes, their free GPU IDs, and their paths.',
           'Switches, ports and physical links connect the existing compute nodes.')
 
 # Physical links: leaf-spine and node-leaf. A crossing is not a switch.
-line([(300,250),(300,410)])
-line([(410,250),(730,410)],NOTE)
+line([(300,250),(300,410)],NOTE)
+line([(410,250),(730,410)])
 line([(730,250),(410,410)])
 line([(840,250),(840,410)])
-line([(300,500),(300,555),(190,555),(190,640)])
+line([(300,500),(300,555),(190,555),(190,640)],NOTE)
 line([(410,500),(410,585),(550,585),(550,640)])
-line([(730,500),(730,555),(910,555),(910,640)],NOTE)
+line([(730,500),(730,555),(910,555),(910,640)])
 
 text(240,144,'Query root',20,NOTE)
 component(240,160,230,90,'Spine 1',['Switch + ports'],18,title_size=25)
@@ -333,38 +333,32 @@ for x,y,name,tx,ty in [
     parts.append(f'<rect x="{x-4}" y="{y-4}" width="8" height="8" fill="white" stroke="{INK}" stroke-width="1.5"/>')
     text(tx,ty,name,16)
 
-for x,node,free in [(40,41,4),(400,42,2),(760,43,2)]:
+for x,node,gpu in [(40,12,87),(400,13,91),(760,14,95)]:
     box(x,640,300,165)
     text(x+18,677,f'Node {node}',25)
-    graph_node(x+150,640,NOTE if node==43 else INK,4)
-    text(x+162,622,'nic0',17)
-    for index in range(4):
-        gx=x+18+59*index
-        box(gx,701,45,37)
-        text(gx+22.5,726,f'G{index}',16,anchor='middle')
-        if index>=free:
-            line([(gx+5,734),(gx+40,705)],MUTED)
-    text(x+18,782,f'{free} free GPU units',20,NOTE)
+    graph_node(x+150,640,NOTE if node==12 else INK,4)
+    text(x+162,622,'nic0 down' if node==14 else 'nic0',17)
+    if node==14:
+        line([(x+143,633),(x+157,647)])
+        line([(x+143,647),(x+157,633)])
+    box(x+18,701,145,37)
+    text(x+90.5,726,f'GPU {gpu} / free',18,anchor='middle')
+    text(x+18,782,'1 free GPU unit',20,NOTE)
 
-box(40,831,22,22)
-text(76,849,'Available',18)
-box(245,831,22,22)
-line([(248,850),(264,834)],MUTED)
-text(281,849,'Allocated',18)
-text(500,849,'GPU inventory stays on Node.resources.',19,MUTED,max_width=560)
-text(40,890,'Blue highlights one usable route from the selected root switch.',20,NOTE,max_width=1020)
+text(40,849,'GPU inventory stays on Node.resources.',19,MUTED,max_width=1020)
+text(40,890,'GPU 95 is free, but Node 14 is unreachable while its NIC is down.',20,NOTE,max_width=1020)
 
 line([(490,977),(650,977)],head='arrow')
 label(570,960,'returns',19)
 component(40,915,450,120,'GpuCandidateFinder',
           ['Free GPU units + usable paths','Capacity + latency constraints'],19,title_size=25)
 component(650,915,410,120,'GpuCandidate',
-          ['node_id, free_gpu_ids, path','Sorted by latency, then Node ID'],18,title_size=25)
-text(40,1061,'Illustrative wiring and GPU state; squares are existing ResourceNode units.',16,MUTED,max_width=1020)
+          ['node_id, free_gpu_ids, path','Here: Node 12 / 87 and Node 13 / 91'],18,title_size=25)
+text(40,1061,'Blue marks one usable route. The cable to Node 14 remains in the physical model.',16,MUTED,max_width=1020)
 save('leaf-spine.svg', m)
 
 # 5. A concrete example of the real request-versus-fulfillment model.
-m = start(910, '5. From a quantity to the exact GPU units',
+m = start(910, 'From a quantity to the exact GPU units',
           'Illustrative job 42 requests two GPUs through ResourceRequirement. An Allocation records its assignment. Two separate AllocationNode records identify GPU ResourceNode 87 on physical Node 12 and ResourceNode 91 on Node 13. The same unit links support precise release.',
           'One request for two GPUs; two allocation links remember which GPUs it received.')
 line([(340,235),(430,235)], head='arrow')

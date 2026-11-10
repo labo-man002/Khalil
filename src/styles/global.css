@@ -1985,10 +1985,41 @@
 .article-diagram-hint {
   display: none;
 }
+.article-layout--illustrated .prose > .article-notes {
+  max-width: none;
+}
+.prose .article-notes {
+  margin-block: 28px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+}
+.article-notes > summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+.article-notes > summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 5px;
+}
+.article-notes[open] > summary {
+  margin-bottom: 20px;
+}
+.prose .article-notes > p {
+  max-width: 760px;
+  margin: 18px auto 23px;
+  font-size: 14px;
+}
+.prose .article-notes .article-diagram {
+  margin-block: 24px;
+}
 @media (max-width: 760px) {
   .prose .article-diagram { margin-block: 28px 34px; }
   .article-diagram > a { overflow-x: auto; }
   .prose .article-diagram img { min-width: 760px; max-width: none; }
   .article-diagram figcaption { padding: 16px; }
   .article-diagram-hint { display: block; margin-bottom: 12px; font-size: 12px; }
+  .prose .article-notes { padding: 14px 16px; }
 }

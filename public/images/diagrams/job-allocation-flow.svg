@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="910" viewBox="0 0 1100 910" role="img" aria-labelledby="title desc">
-<title id="title">1. How the components work together</title>
+<title id="title">How the components work together</title>
 <desc id="desc">API routes delegate to a request-scoped Server, which coordinates the process-local Scheduler and transaction-local Placer. The Server queries and records state; API routes commit or roll back. The Placer builds a topology view from eligible inventory.</desc>
 <metadata>Lettering: Virgil by Ellinor Rapp. SIL Open Font License 1.1. https://github.com/excalidraw/virgil</metadata>
 <defs>
@@ -11,7 +11,6 @@
 <path id="g45" d="M21 263C19 250 36 232 46 222C60 216 89 212 106 213C139 211 182 223 213 227H252C275 224 308 214 328 217C350 230 368 241 382 258C386 275 379 290 359 304C344 311 303 310 275 312C250 317 228 306 204 308H199C175 311 144 316 115 316C101 316 88 315 76 312C55 302 23 285 21 263Z"/>
 <path id="g46" d="M69 25C67 4 70 -13 89 -24C106 -34 120 -39 140 -38C165 -38 174 -29 190 -18C208 -3 227 21 222 46C220 72 211 79 203 101C188 124 158 122 133 120C116 109 89 90 76 76C68 58 70 49 69 25Z"/>
 <path id="g47" d="M-12 -23C-17 -33 -19 -38 -18 -48C-8 -60 4 -79 18 -75C22 -74 26 -73 30 -69C57 -56 64 -28 89 0C237 187 329 348 433 542C488 607 511 694 542 679C564 691 581 760 569 801C556 822 536 836 514 834C499 832 483 824 467 806C465 804 462 793 459 782L454 752C439 730 423 688 420 681C363 561 278 433 212 306C132 206 65 86 -12 -23Z"/>
-<path id="g49" d="M103 78C101 66 95 47 97 37C97 23 101 2 110 -10C110 -11 115 -16 116 -16C127 -25 138 -28 150 -28C159 -28 169 -26 179 -23C190 -11 201 13 198 29C199 55 202 198 202 227C202 229 202 240 203 255L208 364C209 380 209 390 209 392V650C209 653 205 661 202 662C194 664 187 665 180 665C163 665 146 657 121 631C66 572 10 484 1 471C-1 462 23 444 51 444C66 444 108 458 116 467C119 453 118 435 118 433C114 382 103 130 103 78Z"/>
 <path id="g58" d="M80 341C73 323 91 301 106 300C112 299 131 299 137 300C154 301 157 324 162 338C164 363 174 392 175 415C169 432 153 440 138 440C129 440 119 437 112 432C87 409 79 373 80 341ZM80 136C69 103 75 63 87 29C90 14 113 -5 124 -9C139 -7 162 9 162 29C166 42 166 69 175 79C181 92 195 103 194 117C190 146 184 170 156 180H143C117 181 91 157 80 136Z"/>
 <path id="g59" d="M106 392C106 388 107 376 107 375C107 370 126 341 126 337C126 303 144 286 170 286C193 286 202 296 202 306V394C195 413 194 433 161 433C108 433 106 404 106 392ZM88 -218H95C141 -214 164 -198 164 -129C173 -120 182 -46 196 -9C207 32 219 49 234 78V91C219 148 207 137 164 148H145C135 145 114 128 114 116V72C99 28 84 -36 82 -41C75 -68 66 -90 63 -117V-136C63 -138 63 -142 64 -148L68 -187C69 -193 69 -197 69 -199Z"/>
 <path id="g62" d="M91 59C102 40 106 18 136 8C147 4 164 16 173 21C178 24 219 66 224 71C324 147 334 170 452 236L458 242C474 275 495 295 490 324C486 337 476 353 439 362C423 378 396 380 382 394C281 483 172 558 68 622H57C58 622 37 619 28 602V596C47 519 82 504 110 476C118 468 177 432 180 432C245 374 300 353 338 286C337 264 218 207 180 160C151 138 98 132 98 103C95 96 90 73 91 64Z"/>
@@ -62,37 +61,35 @@
 <path id="g121" d="M120 -355C120 -379 128 -404 139 -426C147 -431 156 -432 165 -432C175 -432 186 -430 196 -426C210 -417 214 -405 215 -388C226 -324 221 -289 241 -248C277 -158 303 -77 336 10C339 23 375 130 380 143C380 145 394 174 399 181C410 200 454 279 462 295C478 319 499 358 481 384C468 397 451 403 434 403C418 403 401 398 386 390C368 379 367 353 361 333C346 282 329 220 291 175C259 142 234 107 193 104C158 112 109 139 108 181C106 231 104 278 120 327C128 339 138 350 140 362C144 381 138 391 120 403C110 408 99 411 87 411C65 411 44 401 38 378C31 293 5 220 25 137C42 91 66 42 114 23C134 8 152 3 171 3C185 3 199 6 215 10C220 11 241 9 246 9C242 -22 226 -68 215 -96C193 -150 138 -298 120 -343Z"/>
 </defs>
 <rect width="1100" height="910" fill="white"/>
-<g fill="#283238" aria-label="1. How the components work together">
-<use href="#g49" transform="translate(40.000 50) scale(0.030000 -0.030000)"/>
-<use href="#g46" transform="translate(48.130 50) scale(0.030000 -0.030000)"/>
-<use href="#g72" transform="translate(71.350 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(87.880 50) scale(0.030000 -0.030000)"/>
-<use href="#g119" transform="translate(104.500 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(137.770 50) scale(0.030000 -0.030000)"/>
-<use href="#g104" transform="translate(154.720 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(169.540 50) scale(0.030000 -0.030000)"/>
-<use href="#g99" transform="translate(200.950 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(216.010 50) scale(0.030000 -0.030000)"/>
-<use href="#g109" transform="translate(232.630 50) scale(0.030000 -0.030000)"/>
-<use href="#g112" transform="translate(251.620 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(266.410 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(283.030 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(297.040 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(313.450 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(327.460 50) scale(0.030000 -0.030000)"/>
-<use href="#g115" transform="translate(344.410 50) scale(0.030000 -0.030000)"/>
-<use href="#g119" transform="translate(375.700 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(393.970 50) scale(0.030000 -0.030000)"/>
-<use href="#g114" transform="translate(410.590 50) scale(0.030000 -0.030000)"/>
-<use href="#g107" transform="translate(423.490 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(453.100 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(470.050 50) scale(0.030000 -0.030000)"/>
-<use href="#g103" transform="translate(486.670 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(501.700 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(518.110 50) scale(0.030000 -0.030000)"/>
-<use href="#g104" transform="translate(535.060 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(549.880 50) scale(0.030000 -0.030000)"/>
-<use href="#g114" transform="translate(566.290 50) scale(0.030000 -0.030000)"/>
+<g fill="#283238" aria-label="How the components work together">
+<use href="#g72" transform="translate(40.000 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(56.530 50) scale(0.030000 -0.030000)"/>
+<use href="#g119" transform="translate(73.150 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(106.420 50) scale(0.030000 -0.030000)"/>
+<use href="#g104" transform="translate(123.370 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(138.190 50) scale(0.030000 -0.030000)"/>
+<use href="#g99" transform="translate(169.600 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(184.660 50) scale(0.030000 -0.030000)"/>
+<use href="#g109" transform="translate(201.280 50) scale(0.030000 -0.030000)"/>
+<use href="#g112" transform="translate(220.270 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(235.060 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(251.680 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(265.690 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(282.100 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(296.110 50) scale(0.030000 -0.030000)"/>
+<use href="#g115" transform="translate(313.060 50) scale(0.030000 -0.030000)"/>
+<use href="#g119" transform="translate(344.350 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(362.620 50) scale(0.030000 -0.030000)"/>
+<use href="#g114" transform="translate(379.240 50) scale(0.030000 -0.030000)"/>
+<use href="#g107" transform="translate(392.140 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(421.750 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(438.700 50) scale(0.030000 -0.030000)"/>
+<use href="#g103" transform="translate(455.320 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(470.350 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(486.760 50) scale(0.030000 -0.030000)"/>
+<use href="#g104" transform="translate(503.710 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(518.530 50) scale(0.030000 -0.030000)"/>
+<use href="#g114" transform="translate(534.940 50) scale(0.030000 -0.030000)"/>
 </g>
 <g fill="#56616a" aria-label="The implemented allocation path, with each component doing one kind of work.">
 <use href="#g84" transform="translate(40.000 84) scale(0.020000 -0.020000)"/>

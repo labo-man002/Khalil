@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1220" viewBox="0 0 1100 1220" role="img" aria-labelledby="title desc">
-<title id="title">3. Coordinate layouts, one topology interface</title>
+<title id="title">Coordinate layouts, one topology interface</title>
 <desc id="desc">Illustrative supported layouts: a four-position wrapping ring; a 3 by 3 non-wrapping mesh; a 3 by 3 wrapping torus; and three layers of a 3 by 3 by 3 torus. In the mesh, coordinates [0,0] and [2,0] are two steps apart; with wrapping they are one step apart. Selected wrap and cross-layer links illustrate the repeating pattern. Placer builds a TopologyView from the cluster configuration and eligible nodes; Pack and Spread read its distances.</desc>
 <metadata>Lettering: Virgil by Ellinor Rapp. SIL Open Font License 1.1. https://github.com/excalidraw/virgil</metadata>
 <defs>
@@ -60,47 +60,45 @@
 <path id="g122" d="M390 -11C392 -11 395 -11 400 -12L431 -17C435 -18 439 -18 440 -18C469 -16 514 -28 542 -24C550 -16 566 0 561 13C556 34 513 48 497 57C437 74 375 83 310 83C272 84 231 79 194 89C191 90 182 99 181 102C204 129 234 142 263 158C311 186 389 233 434 253C452 269 468 286 472 311L471 313C464 340 451 356 428 367C325 380 226 402 124 405C124 405 91 413 80 418C69 420 59 427 48 424C37 417 32 405 29 392C23 366 43 343 61 329C98 316 156 313 200 310C214 310 278 302 289 291C288 288 285 280 282 279C279 276 262 263 257 260C182 217 117 159 42 120C29 99 19 100 22 78C22 52 28 24 55 13C76 1 120 -4 150 -11Z"/>
 </defs>
 <rect width="1100" height="1220" fill="white"/>
-<g fill="#283238" aria-label="3. Coordinate layouts, one topology interface">
-<use href="#g51" transform="translate(40.000 50) scale(0.030000 -0.030000)"/>
-<use href="#g46" transform="translate(60.430 50) scale(0.030000 -0.030000)"/>
-<use href="#g67" transform="translate(83.650 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(102.970 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(119.590 50) scale(0.030000 -0.030000)"/>
-<use href="#g114" transform="translate(136.210 50) scale(0.030000 -0.030000)"/>
-<use href="#g100" transform="translate(149.110 50) scale(0.030000 -0.030000)"/>
-<use href="#g105" transform="translate(166.180 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(172.750 50) scale(0.030000 -0.030000)"/>
-<use href="#g97" transform="translate(186.760 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(206.770 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(223.720 50) scale(0.030000 -0.030000)"/>
-<use href="#g108" transform="translate(255.130 50) scale(0.030000 -0.030000)"/>
-<use href="#g97" transform="translate(263.020 50) scale(0.030000 -0.030000)"/>
-<use href="#g121" transform="translate(283.030 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(297.100 50) scale(0.030000 -0.030000)"/>
-<use href="#g117" transform="translate(313.720 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(330.760 50) scale(0.030000 -0.030000)"/>
-<use href="#g115" transform="translate(347.710 50) scale(0.030000 -0.030000)"/>
-<use href="#g44" transform="translate(364.000 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(386.710 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(403.330 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(417.340 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(448.750 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(465.700 50) scale(0.030000 -0.030000)"/>
-<use href="#g112" transform="translate(482.320 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(497.110 50) scale(0.030000 -0.030000)"/>
-<use href="#g108" transform="translate(513.730 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(521.620 50) scale(0.030000 -0.030000)"/>
-<use href="#g103" transform="translate(538.240 50) scale(0.030000 -0.030000)"/>
-<use href="#g121" transform="translate(553.270 50) scale(0.030000 -0.030000)"/>
-<use href="#g105" transform="translate(582.340 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(588.910 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(602.920 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(619.870 50) scale(0.030000 -0.030000)"/>
-<use href="#g114" transform="translate(636.280 50) scale(0.030000 -0.030000)"/>
-<use href="#g102" transform="translate(649.180 50) scale(0.030000 -0.030000)"/>
-<use href="#g97" transform="translate(663.760 50) scale(0.030000 -0.030000)"/>
-<use href="#g99" transform="translate(683.770 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(698.830 50) scale(0.030000 -0.030000)"/>
+<g fill="#283238" aria-label="Coordinate layouts, one topology interface">
+<use href="#g67" transform="translate(40.000 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(59.320 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(75.940 50) scale(0.030000 -0.030000)"/>
+<use href="#g114" transform="translate(92.560 50) scale(0.030000 -0.030000)"/>
+<use href="#g100" transform="translate(105.460 50) scale(0.030000 -0.030000)"/>
+<use href="#g105" transform="translate(122.530 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(129.100 50) scale(0.030000 -0.030000)"/>
+<use href="#g97" transform="translate(143.110 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(163.120 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(180.070 50) scale(0.030000 -0.030000)"/>
+<use href="#g108" transform="translate(211.480 50) scale(0.030000 -0.030000)"/>
+<use href="#g97" transform="translate(219.370 50) scale(0.030000 -0.030000)"/>
+<use href="#g121" transform="translate(239.380 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(253.450 50) scale(0.030000 -0.030000)"/>
+<use href="#g117" transform="translate(270.070 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(287.110 50) scale(0.030000 -0.030000)"/>
+<use href="#g115" transform="translate(304.060 50) scale(0.030000 -0.030000)"/>
+<use href="#g44" transform="translate(320.350 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(343.060 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(359.680 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(373.690 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(405.100 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(422.050 50) scale(0.030000 -0.030000)"/>
+<use href="#g112" transform="translate(438.670 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(453.460 50) scale(0.030000 -0.030000)"/>
+<use href="#g108" transform="translate(470.080 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(477.970 50) scale(0.030000 -0.030000)"/>
+<use href="#g103" transform="translate(494.590 50) scale(0.030000 -0.030000)"/>
+<use href="#g121" transform="translate(509.620 50) scale(0.030000 -0.030000)"/>
+<use href="#g105" transform="translate(538.690 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(545.260 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(559.270 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(576.220 50) scale(0.030000 -0.030000)"/>
+<use href="#g114" transform="translate(592.630 50) scale(0.030000 -0.030000)"/>
+<use href="#g102" transform="translate(605.530 50) scale(0.030000 -0.030000)"/>
+<use href="#g97" transform="translate(620.110 50) scale(0.030000 -0.030000)"/>
+<use href="#g99" transform="translate(640.120 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(655.180 50) scale(0.030000 -0.030000)"/>
 </g>
 <g fill="#56616a" aria-label="Node coordinates and cluster settings define neighbours and distance.">
 <use href="#g78" transform="translate(40.000 84) scale(0.020000 -0.020000)"/>

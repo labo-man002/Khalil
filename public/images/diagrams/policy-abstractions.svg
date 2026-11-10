@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1040" viewBox="0 0 1100 1040" role="img" aria-labelledby="title desc">
-<title id="title">2. Two decisions, two policy interfaces</title>
+<title id="title">Two decisions, two policy interfaces</title>
 <desc id="desc">Scheduler uses the abstract SortStrategy, implemented by FifoSort and PrioritySort. Placer uses the abstract PlaceAlgorithm, implemented by PackAlgorithm and SpreadAlgorithm. Topology builds a TopologyView; the placement algorithm reads its distance information.</desc>
 <metadata>Lettering: Virgil by Ellinor Rapp. SIL Open Font License 1.1. https://github.com/excalidraw/virgil</metadata>
 <defs>
@@ -10,7 +10,6 @@
 <path id="g44" d="M45 -114C35 -142 40 -168 39 -196C39 -224 50 -238 71 -253C73 -254 87 -254 89 -253C107 -251 114 -228 121 -215C137 -164 142 -122 152 -64C155 -4 172 48 178 107C176 122 184 143 167 151C159 154 150 156 141 156C118 156 95 145 83 124C73 103 79 81 77 59C79 48 73 33 71 17C56 -21 52 -71 45 -114Z"/>
 <path id="g46" d="M69 25C67 4 70 -13 89 -24C106 -34 120 -39 140 -38C165 -38 174 -29 190 -18C208 -3 227 21 222 46C220 72 211 79 203 101C188 124 158 122 133 120C116 109 89 90 76 76C68 58 70 49 69 25Z"/>
 <path id="g47" d="M-12 -23C-17 -33 -19 -38 -18 -48C-8 -60 4 -79 18 -75C22 -74 26 -73 30 -69C57 -56 64 -28 89 0C237 187 329 348 433 542C488 607 511 694 542 679C564 691 581 760 569 801C556 822 536 836 514 834C499 832 483 824 467 806C465 804 462 793 459 782L454 752C439 730 423 688 420 681C363 561 278 433 212 306C132 206 65 86 -12 -23Z"/>
-<path id="g50" d="M92 146C78 116 72 84 88 56C123 30 102 40 139 15C171 0 192 -5 221 -5C236 -5 252 -4 272 -2C295 -5 330 13 344 32C374 66 390 69 403 105C462 110 523 85 568 51C578 43 623 0 631 -10C641 -11 655 -11 663 -10C675 0 687 16 682 31C688 77 643 106 612 130C563 165 533 191 468 205C515 281 543 328 554 418C573 568 487 601 446 623C424 635 394 640 358 640C332 640 303 637 272 633C201 608 184 599 136 551C113 531 103 503 116 469C120 439 157 418 183 424C208 423 207 428 214 446C216 449 221 470 223 479C255 545 307 546 367 547C416 528 468 507 459 445C442 345 387 254 363 227C363 224 334 224 333 224C296 231 238 221 208 222C154 211 132 196 92 146ZM207 88 188 106C207 130 246 143 278 143C292 143 304 141 313 136L296 123V120C295 123 292 125 288 117C277 97 256 90 238 86Z"/>
 <path id="g58" d="M80 341C73 323 91 301 106 300C112 299 131 299 137 300C154 301 157 324 162 338C164 363 174 392 175 415C169 432 153 440 138 440C129 440 119 437 112 432C87 409 79 373 80 341ZM80 136C69 103 75 63 87 29C90 14 113 -5 124 -9C139 -7 162 9 162 29C166 42 166 69 175 79C181 92 195 103 194 117C190 146 184 170 156 180H143C117 181 91 157 80 136Z"/>
 <path id="g63" d="M114 282C114 241 173 216 177 213C192 210 216 215 228 219C232 223 251 252 247 257C247 268 240 277 240 289C251 330 306 372 348 402C353 407 449 492 449 510C463 547 454 585 424 611C368 667 298 682 227 682C174 682 120 674 70 668C-4 668 12 619 12 617C12 582 27 577 45 573H89C102 573 171 586 171 586H253C263 586 307 576 317 573C333 557 340 543 336 523C328 512 283 467 272 459C271 458 266 454 260 450L215 424C209 420 205 417 203 415C157 381 115 346 114 282ZM209 156C179 143 155 107 158 79V67C171 35 181 3 214 3C248 -10 275 45 279 74C290 115 268 146 228 156Z"/>
 <path id="g65" d="M490 89C494 63 476 39 479 13C479 13 481 6 484 3C498 -19 506 -33 523 -46C531 -50 539 -52 548 -52C557 -52 566 -50 573 -46C609 -18 590 19 587 57C585 83 565 127 574 150C575 151 578 154 582 155C600 164 626 176 640 188C641 190 642 202 641 204C632 224 604 224 586 227C571 227 563 236 562 237C563 314 567 386 565 462C567 478 569 523 572 568C575 613 579 658 580 674C582 697 559 719 533 719C530 719 521 718 521 718C501 717 485 700 474 685C475 681 466 650 466 647C446 546 390 476 333 386C263 305 225 235 135 132L40 44C26 27 12 -3 16 -25C16 -43 37 -44 51 -44C72 -28 98 -12 123 6C138 18 203 81 217 94H223C234 91 242 90 250 90C260 90 268 92 279 95C325 112 408 119 463 133C463 133 470 131 473 128C476 127 479 123 480 122C483 115 490 94 490 89ZM293 199C333 254 379 302 413 359C443 387 447 431 477 450C477 434 477 419 477 404L478 316C478 301 478 286 478 270L474 221L467 216C417 195 349 196 299 194C296 194 292 197 293 199Z"/>
@@ -55,41 +54,39 @@
 <path id="g121" d="M120 -355C120 -379 128 -404 139 -426C147 -431 156 -432 165 -432C175 -432 186 -430 196 -426C210 -417 214 -405 215 -388C226 -324 221 -289 241 -248C277 -158 303 -77 336 10C339 23 375 130 380 143C380 145 394 174 399 181C410 200 454 279 462 295C478 319 499 358 481 384C468 397 451 403 434 403C418 403 401 398 386 390C368 379 367 353 361 333C346 282 329 220 291 175C259 142 234 107 193 104C158 112 109 139 108 181C106 231 104 278 120 327C128 339 138 350 140 362C144 381 138 391 120 403C110 408 99 411 87 411C65 411 44 401 38 378C31 293 5 220 25 137C42 91 66 42 114 23C134 8 152 3 171 3C185 3 199 6 215 10C220 11 241 9 246 9C242 -22 226 -68 215 -96C193 -150 138 -298 120 -343Z"/>
 </defs>
 <rect width="1100" height="1040" fill="white"/>
-<g fill="#283238" aria-label="2. Two decisions, two policy interfaces">
-<use href="#g50" transform="translate(40.000 50) scale(0.030000 -0.030000)"/>
-<use href="#g46" transform="translate(61.360 50) scale(0.030000 -0.030000)"/>
-<use href="#g84" transform="translate(84.580 50) scale(0.030000 -0.030000)"/>
-<use href="#g119" transform="translate(108.700 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(126.970 50) scale(0.030000 -0.030000)"/>
-<use href="#g100" transform="translate(158.590 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(175.660 50) scale(0.030000 -0.030000)"/>
-<use href="#g99" transform="translate(192.070 50) scale(0.030000 -0.030000)"/>
-<use href="#g105" transform="translate(207.130 50) scale(0.030000 -0.030000)"/>
-<use href="#g115" transform="translate(213.700 50) scale(0.030000 -0.030000)"/>
-<use href="#g105" transform="translate(229.990 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(236.560 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(253.180 50) scale(0.030000 -0.030000)"/>
-<use href="#g115" transform="translate(267.190 50) scale(0.030000 -0.030000)"/>
-<use href="#g44" transform="translate(283.480 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(306.190 50) scale(0.030000 -0.030000)"/>
-<use href="#g119" transform="translate(323.140 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(341.410 50) scale(0.030000 -0.030000)"/>
-<use href="#g112" transform="translate(373.030 50) scale(0.030000 -0.030000)"/>
-<use href="#g111" transform="translate(387.820 50) scale(0.030000 -0.030000)"/>
-<use href="#g108" transform="translate(404.440 50) scale(0.030000 -0.030000)"/>
-<use href="#g105" transform="translate(412.330 50) scale(0.030000 -0.030000)"/>
-<use href="#g99" transform="translate(418.900 50) scale(0.030000 -0.030000)"/>
-<use href="#g121" transform="translate(433.960 50) scale(0.030000 -0.030000)"/>
-<use href="#g105" transform="translate(463.030 50) scale(0.030000 -0.030000)"/>
-<use href="#g110" transform="translate(469.600 50) scale(0.030000 -0.030000)"/>
-<use href="#g116" transform="translate(483.610 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(500.560 50) scale(0.030000 -0.030000)"/>
-<use href="#g114" transform="translate(516.970 50) scale(0.030000 -0.030000)"/>
-<use href="#g102" transform="translate(529.870 50) scale(0.030000 -0.030000)"/>
-<use href="#g97" transform="translate(544.450 50) scale(0.030000 -0.030000)"/>
-<use href="#g99" transform="translate(564.460 50) scale(0.030000 -0.030000)"/>
-<use href="#g101" transform="translate(579.520 50) scale(0.030000 -0.030000)"/>
-<use href="#g115" transform="translate(595.930 50) scale(0.030000 -0.030000)"/>
+<g fill="#283238" aria-label="Two decisions, two policy interfaces">
+<use href="#g84" transform="translate(40.000 50) scale(0.030000 -0.030000)"/>
+<use href="#g119" transform="translate(64.120 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(82.390 50) scale(0.030000 -0.030000)"/>
+<use href="#g100" transform="translate(114.010 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(131.080 50) scale(0.030000 -0.030000)"/>
+<use href="#g99" transform="translate(147.490 50) scale(0.030000 -0.030000)"/>
+<use href="#g105" transform="translate(162.550 50) scale(0.030000 -0.030000)"/>
+<use href="#g115" transform="translate(169.120 50) scale(0.030000 -0.030000)"/>
+<use href="#g105" transform="translate(185.410 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(191.980 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(208.600 50) scale(0.030000 -0.030000)"/>
+<use href="#g115" transform="translate(222.610 50) scale(0.030000 -0.030000)"/>
+<use href="#g44" transform="translate(238.900 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(261.610 50) scale(0.030000 -0.030000)"/>
+<use href="#g119" transform="translate(278.560 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(296.830 50) scale(0.030000 -0.030000)"/>
+<use href="#g112" transform="translate(328.450 50) scale(0.030000 -0.030000)"/>
+<use href="#g111" transform="translate(343.240 50) scale(0.030000 -0.030000)"/>
+<use href="#g108" transform="translate(359.860 50) scale(0.030000 -0.030000)"/>
+<use href="#g105" transform="translate(367.750 50) scale(0.030000 -0.030000)"/>
+<use href="#g99" transform="translate(374.320 50) scale(0.030000 -0.030000)"/>
+<use href="#g121" transform="translate(389.380 50) scale(0.030000 -0.030000)"/>
+<use href="#g105" transform="translate(418.450 50) scale(0.030000 -0.030000)"/>
+<use href="#g110" transform="translate(425.020 50) scale(0.030000 -0.030000)"/>
+<use href="#g116" transform="translate(439.030 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(455.980 50) scale(0.030000 -0.030000)"/>
+<use href="#g114" transform="translate(472.390 50) scale(0.030000 -0.030000)"/>
+<use href="#g102" transform="translate(485.290 50) scale(0.030000 -0.030000)"/>
+<use href="#g97" transform="translate(499.870 50) scale(0.030000 -0.030000)"/>
+<use href="#g99" transform="translate(519.880 50) scale(0.030000 -0.030000)"/>
+<use href="#g101" transform="translate(534.940 50) scale(0.030000 -0.030000)"/>
+<use href="#g115" transform="translate(551.350 50) scale(0.030000 -0.030000)"/>
 </g>
 <g fill="#56616a" aria-label="Queue ordering can change independently of the physical resource choice.">
 <use href="#g81" transform="translate(40.000 84) scale(0.020000 -0.020000)"/>
