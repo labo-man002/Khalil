@@ -6,7 +6,7 @@ slug: from-job-request-to-allocation
 date: "2026-11-10"
 category: Architecture story
 tags: [Architecture, Placement, Systems]
-readTime: 4
+readTime: 5
 image: images/diagrams/job-allocation-flow.png
 wideDiagrams: true
 ---
@@ -48,9 +48,15 @@ The distinction becomes more useful as there are more choices. Several machines 
 
 Keeping that choice separate from queue order lets me explore a new placement policy without rewriting how jobs wait their turn. It also gives each decision a clear explanation: why this job was considered, and why these resources were selected.
 
+## The cluster defines the layout
+
+Each cluster carries its own topology type, dimensions, and wrap-around setting. Its nodes are registered with coordinates checked against that layout. Those positions let the topology work out neighbours and distances. With wrap-around enabled, nodes at opposite edges can be one step apart.
+
+When building the placer for a cluster, the application creates its Topology from that configuration. Every placement attempt then builds a fresh TopologyView of the currently eligible nodes. Pack and Spread use the distances from that view to rank candidates, so the same placement logic works across the supported grid layouts.
+
 <figure class="article-diagram">
   <a href="../../images/diagrams/policy-abstractions.svg" target="_blank" rel="noopener noreferrer" aria-label="Open the policy abstractions sketch at full size"><img src="../../images/diagrams/policy-abstractions.svg" alt="Two independent policy families. Scheduler uses abstract SortStrategy, implemented by FifoSort and PrioritySort. Placer uses abstract PlaceAlgorithm, implemented by PackAlgorithm and SpreadAlgorithm. Topology creates TopologyView, whose distances the placement policy reads." width="1100" height="1040" loading="lazy" /></a>
-  <figcaption><span class="article-diagram-hint">Scroll sideways to read the sketch, or open the full-size SVG below.</span><strong>2. Two decisions, two policy interfaces.</strong> SortStrategy controls queue order. PlaceAlgorithm controls resource choice. Their implementations can change independently. Pack and Spread prefer candidates near or farther from occupied nodes within the eligible topology view. Topology constructs that view; the placement policy reads it. <span class="article-diagram-links"><a href="../../images/diagrams/policy-abstractions.svg" target="_blank" rel="noopener noreferrer">Full-size SVG ↗</a><a href="../../images/diagrams/policy-abstractions.png" download>Download PNG ↓</a></span></figcaption>
+  <figcaption><span class="article-diagram-hint">Scroll sideways to read the sketch, or open the full-size SVG below.</span><strong>2. Two decisions, two policy interfaces.</strong> SortStrategy controls queue order. PlaceAlgorithm controls resource choice. Their implementations can change independently. Pack and Spread prefer candidates near or farther from occupied nodes within the eligible topology view. Topology constructs that view from the cluster’s configuration and the nodes eligible for this job; the placement policy reads it. <span class="article-diagram-links"><a href="../../images/diagrams/policy-abstractions.svg" target="_blank" rel="noopener noreferrer">Full-size SVG ↗</a><a href="../../images/diagrams/policy-abstractions.png" download>Download PNG ↓</a></span></figcaption>
 </figure>
 
 ## Remembering the decision

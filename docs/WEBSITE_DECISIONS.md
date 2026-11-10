@@ -24,6 +24,7 @@ This is the durable record of Khalil Ben Maaoui's choices for the portfolio and 
 - Read the actual project before proposing work or writing about it. Describe implemented behavior precisely and identify exploratory extensions as such.
 - The public workload-management project is [labo-man002/job-scheduler](https://github.com/labo-man002/job-scheduler). It models requests, queue order, resource placement, allocation records, lifecycle, and release. Workload execution belongs to a separate layer.
 - Its current queue is process-local. The Scheduler chooses the next placement attempt; the transaction-local Placer chooses exact resource units. The Server coordinates admission and persistence; API routes own transaction commit and rollback.
+- Explain the topology connection in allocation writing: each cluster defines its layout, node coordinates are checked against it, and placement builds a fresh view of eligible nodes. That view derives neighbours and distances for the placement policy to use across supported grid layouts.
 - The standalone GPU leaf–spine prototype is separate from the live allocation path. Recheck implementation before describing an integration or bandwidth reservation as available.
 - Use real project screenshots for project covers and interface examples. Use the project's actual model and code to derive architecture and ERD illustrations.
 - Credit the official Sparxity system photograph and retain image provenance in [ASSET_SOURCES.md](ASSET_SOURCES.md).
