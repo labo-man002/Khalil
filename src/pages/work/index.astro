@@ -1,0 +1,5 @@
+---
+import Base from '../../layouts/Base.astro';
+import { projects, url } from '../../lib/site';
+---
+<Base title="Selected work" active="work"><section class="page-intro shell"><p class="eyebrow">Selected projects / Public code</p><h1>Build it.<br /><em>Make it inspectable.</em></h1><p>Three projects exploring how work meets compute infrastructure: the allocation model, the teaching experiment, and the resource explanation.</p></section><section class="shell work-list">{projects.map(p => <a class="featured-project" href={url(`work/${p.slug}/`)}><div class="featured-project-copy"><span class="project-kicker">{p.number} / {p.label}</span><h3>{p.title}</h3><p>{p.description}</p><div class="tag-list">{p.tags.map(t => <span>{t}</span>)}</div><span class="project-bottom">Read the project notes <span aria-hidden="true">↗</span></span></div><div class="featured-project-image"><img src={url(`images/${p.image}`)} width="1536" height="1024" loading="lazy" alt={`${p.title} — an explanatory illustration`} /><span class="image-label">{p.status}</span></div></a>)}</section></Base>

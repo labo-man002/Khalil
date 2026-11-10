@@ -1,7 +1,7 @@
 node_modules/
 dist/
 .astro/
-work/
+/work/
 .env
 .env.*
 .DS_Store
