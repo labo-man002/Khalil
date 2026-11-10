@@ -1,6 +1,6 @@
 # Khalil Ben Maaoui — personal website
 
-A static portfolio and engineering notebook built with Astro. Includes an introduction, professional experience, education, skills, three public project case studies, four illustrated engineering notes, a searchable writing archive, RSS, sitemap, accessible navigation, and the provided CV download.
+A static portfolio and engineering notebook built with Astro. Includes an introduction, professional experience, education, skills, a Sparxity / SpiNNaker2 professional case study and two public project case studies, four illustrated engineering notes, a searchable writing archive, RSS, sitemap, accessible navigation, and the provided CV download.
 
 ## Local development
 
@@ -62,6 +62,10 @@ The CI workflow validates both root hosting and the Pages project prefix. The se
 
 ## Content and illustrations
 
-Professional claims follow the provided CV. Public-project descriptions follow their public READMEs and implementation boundaries. The standalone leaf–spine prototype is kept separate from actual allocations, and synthetic GPU scenarios are labeled as such. The fine-line architecture and data-model graphics were generated with AI assistance; example resource IDs are illustrative.
+Professional claims follow the provided CV. Public-project descriptions follow their public READMEs and implementation boundaries. The standalone leaf–spine prototype remains separate from actual allocations. Application screenshots and historical ERD artwork are copied from the public job-scheduler repository. Current class and ERD diagrams are rendered with Graphviz from documented class responsibilities and a pinned ORM schema snapshot. The official Sparxity system photograph is sourced from sparxity.ai and credited in the interface.
 
 There are no analytics, cookies, accounts, contact-form storage, or runtime secrets. Contact links use email, LinkedIn, and GitHub directly. No license for redistribution of personal content or the CV is granted by this repository.
+
+## Technical diagrams
+
+Run `python3 scripts/render-diagrams.py` with Graphviz installed to regenerate the class architecture and current-model ERD SVGs. The checked-in `docs/diagrams/schema-snapshot.json` records the source commit and exact ORM columns and foreign keys. Original project ERDs are labeled as historical because their enum lookup-table design differs from the current models. See `docs/ASSET_SOURCES.md` for image sources.

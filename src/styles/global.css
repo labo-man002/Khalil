@@ -17,6 +17,9 @@
     display:block;
     max-width:100%
   }
+  img {
+    height:auto
+  }
   button,input {
     font:inherit
   }
@@ -1640,4 +1643,271 @@
     animation:none!important;
     transition:none!important
   }
+}
+
+/* Source-backed project imagery and the Sparxity / SpiNNaker2 case study. */
+.hero {
+  gap: 45px;
+}
+.hero h1 {
+  font-size: clamp(48px, 5.1vw, 68px);
+  line-height: 1.07;
+}
+.machine-hero {
+  align-self: center;
+  min-width: 0;
+}
+.machine-hero > a {
+  display: block;
+  overflow: hidden;
+  border: 1px solid #2d4658;
+  border-radius: 5px;
+  background: #132c43;
+}
+.machine-hero img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  object-position: 62% center;
+}
+.machine-hero figcaption {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding-top: 11px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+}
+.machine-hero figcaption a:hover {
+  text-decoration: underline;
+}
+.machine-scale {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 35px;
+  padding-bottom: 37px;
+}
+.machine-scale > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 18px;
+  border-left: 1px solid #c6d1bd;
+}
+.machine-scale strong {
+  font-family: var(--serif);
+  font-size: 29px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #365640;
+  letter-spacing: -.5px;
+}
+.machine-scale span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.project-screenshot .featured-project-image {
+  padding: 30px 22px 45px;
+}
+.project-screenshot .featured-project-image img {
+  width: 100%;
+  height: auto;
+  transform: none;
+}
+.professional-project {
+  background: #1d3440;
+  border-color: #3c5662;
+  color: #f7f5ef;
+}
+.professional-project p,
+.professional-project .project-kicker {
+  color: #c0cdd0;
+}
+.professional-project .tag-list span {
+  color: #d0dcdd;
+  border-color: #516b75;
+}
+.professional-project .featured-project-image {
+  background: #182f3d;
+}
+.professional-project .featured-project-image img {
+  border: 1px solid #4c6572;
+  border-radius: 4px;
+}
+.professional-project .image-label {
+  color: #b8cbd2;
+}
+.project-cover figcaption {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 15px;
+  font-family: var(--mono);
+  color: var(--muted);
+  font-size: 10px;
+}
+.machine-cover {
+  background: #152b3b;
+  border-color: #395260;
+  padding: 18px 18px 15px;
+}
+.machine-cover img {
+  max-width: none;
+  max-height: 580px;
+  object-fit: cover;
+  object-position: center 58%;
+}
+.machine-cover figcaption {
+  color: #bdcdd1;
+}
+.project-interface {
+  margin: 35px 0 70px;
+}
+.project-interface h2 {
+  margin: 14px 0 28px;
+}
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.screenshot-grid figure {
+  background: #edf0e8;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 16px;
+}
+.screenshot-grid img {
+  width: 100%;
+  border: 1px solid #d5dcd0;
+  border-radius: 3px;
+}
+.screenshot-grid figcaption {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  padding-top: 13px;
+}
+.project-diagrams {
+  padding-bottom: 75px;
+}
+.diagram-note {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+}
+.diagram-panel {
+  margin-top: 26px;
+  border: 1px solid #ccd9d6;
+  border-radius: 6px;
+  background: #fbfcfa;
+  overflow: hidden;
+}
+.diagram-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 23px 26px;
+  border-bottom: 1px solid #dce5df;
+}
+.diagram-panel-heading h3 {
+  font-family: var(--serif);
+  font-size: 28px;
+  margin-top: 7px;
+}
+.diagram-panel-heading .text-link {
+  font-size: 11px;
+}
+.diagram-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 610px;
+  padding: 24px;
+  background: #f7faf9;
+}
+.diagram-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.diagram-panel figcaption {
+  padding: 18px 26px;
+  border-top: 1px solid #dce5df;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #64776c;
+}
+.diagram-panel figcaption a {
+  margin-left: 5px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.original-schema {
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 20px 25px;
+}
+.original-schema summary {
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 23px;
+}
+.original-schema summary span {
+  float: right;
+  color: var(--green);
+}
+.original-schema p {
+  font-size: 13px;
+  margin: 20px 0;
+  max-width: 850px;
+}
+.original-schema img {
+  width: 100%;
+  border: 1px solid #333;
+  border-radius: 4px;
+}
+.original-schema-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 25px;
+  font-size: 11px;
+  margin-top: 20px;
+}
+.original-schema-links a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 760px) {
+  .hero h1 { font-size: clamp(44px, 8.5vw, 62px); }
+  .machine-hero { width: 100%; }
+  .machine-hero img { height: 340px; object-position: center; }
+  .machine-scale { gap: 18px; padding-bottom: 30px; }
+  .machine-scale > div { padding-left: 10px; }
+  .machine-scale strong { font-size: 25px; }
+  .machine-scale span { font-size: 9px; line-height: 1.7; }
+  .project-diagrams .section-heading { flex-direction: column; gap: 12px; }
+  .diagram-image { height: 450px; padding: 12px; }
+  .diagram-panel-heading { padding: 18px; }
+  .diagram-panel-heading h3 { font-size: 24px; }
+  .diagram-panel figcaption { padding: 16px 18px; }
+  .screenshot-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 43px; }
+  .hero-actions { flex-wrap: wrap; }
+  .hero-actions .button { font-size: 11px; }
+  .machine-hero img { height: 285px; }
+  .machine-scale { grid-template-columns: 1fr; gap: 17px; }
+  .machine-scale > div { flex-direction: row; align-items: baseline; gap: 13px; }
+  .machine-scale strong { flex-shrink: 0; min-width: 135px; font-size: 23px; }
+  .machine-scale span { max-width: 150px; font-size: 10px; }
+  .diagram-panel-heading { align-items: start; flex-direction: column; gap: 13px; }
+  .diagram-image { height: 350px; }
+  .original-schema { padding: 17px; }
+  .original-schema summary { font-size: 20px; }
 }

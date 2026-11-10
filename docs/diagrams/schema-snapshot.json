@@ -1,0 +1,545 @@
+{
+  "source": "https://github.com/labo-man002/job-scheduler",
+  "commit": "ba7dca7f7a82a89f8a34b252ff239a03e32dc1a5",
+  "models": [
+    {
+      "class": "Allocation",
+      "table": "allocation",
+      "columns": [
+        {
+          "name": "allocation_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "job_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "job.job_id",
+          "nullable": false
+        },
+        {
+          "name": "begin_time",
+          "type": "DateTime",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "end_time",
+          "type": "DateTime",
+          "pk": false,
+          "fk": null,
+          "nullable": true
+        },
+        {
+          "name": "duration",
+          "type": "Integer",
+          "pk": false,
+          "fk": null,
+          "nullable": true
+        },
+        {
+          "name": "allocation_status",
+          "type": "AllocationStatus",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "AllocationNode",
+      "table": "allocation_node",
+      "columns": [
+        {
+          "name": "allocation_node_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "allocation_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "allocation.allocation_id",
+          "nullable": false
+        },
+        {
+          "name": "resource_node_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "node_resource.resource_node_id",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "Client",
+      "table": "client",
+      "columns": [
+        {
+          "name": "client_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "owner",
+          "type": "String",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "institute_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "institute.institute_id",
+          "nullable": false
+        },
+        {
+          "name": "client_status",
+          "type": "ClientStatus",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "Cluster",
+      "table": "cluster",
+      "columns": [
+        {
+          "name": "cluster_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "cluster_name",
+          "type": "String",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "topology_type",
+          "type": "TopologyType",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "dimension",
+          "type": "Integer[]",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "wrap",
+          "type": "Boolean",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "Institute",
+      "table": "institute",
+      "columns": [
+        {
+          "name": "institute_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "institute_name",
+          "type": "String",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "Job",
+      "table": "job",
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "JobStatus",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "priority",
+          "type": "Priority",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "duration",
+          "type": "Integer",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "client_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "client.client_id",
+          "nullable": false
+        },
+        {
+          "name": "submitted_at",
+          "type": "DateTime",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "JobEvent",
+      "table": "job_event",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "event_type",
+          "type": "JobStatus",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "time",
+          "type": "DateTime",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "comment",
+          "type": "String",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "job_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "job.job_id",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "Node",
+      "table": "node",
+      "columns": [
+        {
+          "name": "node_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "cluster_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "cluster.cluster_id",
+          "nullable": false
+        },
+        {
+          "name": "coordinates",
+          "type": "Integer[]",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "nic_capacity_gbps",
+          "type": "Float",
+          "pk": false,
+          "fk": null,
+          "nullable": true
+        },
+        {
+          "name": "nic_state",
+          "type": "OperationalState",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "NodeStatus",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "NodeReservation",
+      "table": "node_reservation",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "node_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "node.node_id",
+          "nullable": false
+        },
+        {
+          "name": "reservation_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "reservation.id",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "Quota",
+      "table": "quota",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "resource_type",
+          "type": "ResourceType",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "institute_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "institute.institute_id",
+          "nullable": false
+        },
+        {
+          "name": "limit",
+          "type": "Integer",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "period",
+          "type": "DateTime",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "Reservation",
+      "table": "reservation",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "institute_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "institute.institute_id",
+          "nullable": false
+        },
+        {
+          "name": "start_period",
+          "type": "DateTime",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "end_period",
+          "type": "DateTime",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "reason",
+          "type": "String",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "ResourceNode",
+      "table": "node_resource",
+      "columns": [
+        {
+          "name": "resource_node_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "node_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "node.node_id",
+          "nullable": false
+        },
+        {
+          "name": "resource_type",
+          "type": "ResourceType",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "resource_type_index",
+          "type": "Integer",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "resource_status",
+          "type": "ResourceStatus",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "ResourceRequirement",
+      "table": "resource_requirement",
+      "columns": [
+        {
+          "name": "req_res_id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "job_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "job.job_id",
+          "nullable": false
+        },
+        {
+          "name": "resource_type",
+          "type": "ResourceType",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "amount",
+          "type": "Integer",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "class": "ResourceUsage",
+      "table": "resource_usage",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Integer",
+          "pk": true,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "institute_id",
+          "type": "Integer",
+          "pk": false,
+          "fk": "institute.institute_id",
+          "nullable": false
+        },
+        {
+          "name": "resource_type",
+          "type": "ResourceType",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "consumed_hours",
+          "type": "Integer",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        },
+        {
+          "name": "period",
+          "type": "Integer",
+          "pk": false,
+          "fk": null,
+          "nullable": false
+        }
+      ]
+    }
+  ]
+}

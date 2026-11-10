@@ -13,9 +13,13 @@ A client requests two GPUs. That is the beginning of the story, not yet an alloc
 
 My [job-scheduler project](https://github.com/labo-man002/job-scheduler) models that path. It uses Python, FastAPI, PostgreSQL, SQLAlchemy, and React. This walkthrough follows the implemented allocation model; launching and supervising workloads is outside its scope.
 
+<img src="../../images/project/cluster-detail.png" alt="The actual project interface showing a torus cluster and node resource state" width="1440" height="780" />
+
 ## The coordination boundary
 
-<img src="../../images/architecture.png" alt="Architecture drawing showing the React interface, API routes, Server, Scheduler, Placer, and PostgreSQL" width="1536" height="1024" />
+<a href="../../images/diagrams/class-architecture.svg" target="_blank" rel="noopener noreferrer"><img src="../../images/diagrams/class-architecture.svg" alt="Class architecture redrawn from the project documentation: Server, Scheduler, Placer, queue and placement policies, and topology" /></a>
+
+The diagram follows the [implemented class architecture](https://github.com/labo-man002/job-scheduler/blob/main/docs/architecture.md). Open it to inspect the full-size SVG.
 
 The FastAPI route creates a request-scoped `Server`. The server loads the client, checks the institute’s current-month concurrency quota, selects a cluster, and records the accepted job as `QUEUED`.
 
@@ -37,7 +41,9 @@ On success, the server records the allocation and transitions the job to `RUNNIN
 
 ## Demand and fulfillment are different records
 
-<img src="../../images/allocation-model.png" alt="Focused data-model drawing connecting a Job and ResourceRequirement to Allocation, AllocationNode, and individual resource inventory" width="1536" height="1024" loading="lazy" />
+<a href="../../images/diagrams/entity-relationships.svg" target="_blank" rel="noopener noreferrer"><img src="../../images/diagrams/entity-relationships.svg" alt="Core allocation ERD showing actual ownership, job, allocation, and hardware tables and their foreign keys" loading="lazy" /></a>
+
+This ERD follows the current ORM fields and foreign keys. The repository also retains its [original schema drawings](https://github.com/labo-man002/job-scheduler/blob/main/docs/erd.md), which document an earlier design.
 
 The schema keeps requested quantities separate from assigned units:
 

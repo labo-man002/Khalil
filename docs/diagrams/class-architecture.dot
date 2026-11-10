@@ -1,0 +1,54 @@
+digraph diagram {
+      graph [bgcolor="#f7faf9", pad="0.6", nodesep="0.5", ranksep="0.85", splines=polyline, outputorder=edgesfirst, fontname="Helvetica", fontsize=20, fontcolor="#213c45", labelloc=t, labeljust=l];
+      node [shape=plain, fontname="Helvetica", margin=0];
+      edge [fontname="Helvetica", fontsize=10, color="#91a4a6", fontcolor="#587075", penwidth=1.1, arrowsize=0.75];
+    rankdir=TB;
+label="CLASS ARCHITECTURE
+Implemented scheduling and placement classes · condensed from the project documentation";
+Server [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#284e43" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">APPLICATION SERVICE</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>Server</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">db: Session</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">_schedulers: dict</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">submit_job() / complete_job()</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">_build_placer() / _drain_queue()</FONT></TD></TR></TABLE>>];
+Scheduler [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#315769" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">PROCESS-LOCAL QUEUE</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>Scheduler</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">enqueue() / dequeue()</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">attempt_placement(job)</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">set_sort_strategy()</FONT></TD></TR></TABLE>>];
+PendingJob [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#315769" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">QUEUED REFERENCE</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>PendingJob</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">job_id: int</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">priority: Priority</FONT></TD></TR></TABLE>>];
+Placer [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#284e43" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">TRANSACTION-LOCAL SELECTION</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>Placer</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">nodes / algorithm / topology</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">place(job)</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">has_enough_capacity()</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">release_resource()</FONT></TD></TR></TABLE>>];
+SortStrategy [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#78623c" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">ABSTRACT POLICY</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>SortStrategy</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">key(job)</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">sort(queue)</FONT></TD></TR></TABLE>>];
+FifoSort [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#78623c" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">QUEUE POLICY</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>FifoSort</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">preserve enqueue order</FONT></TD></TR></TABLE>>];
+PrioritySort [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#78623c" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">QUEUE POLICY</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>PrioritySort</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">priority + FIFO tie-break</FONT></TD></TR></TABLE>>];
+PlaceAlgorithm [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#78623c" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">ABSTRACT POLICY</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>PlaceAlgorithm</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">select(candidates, job, view)</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">rank(candidates, job, view)</FONT></TD></TR></TABLE>>];
+PackAlgorithm [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#78623c" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">PLACEMENT POLICY</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>PackAlgorithm</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">nearest occupied node</FONT></TD></TR></TABLE>>];
+SpreadAlgorithm [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#78623c" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">PLACEMENT POLICY</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>SpreadAlgorithm</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">farthest from nearest occupied</FONT></TD></TR></TABLE>>];
+Topology [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#4c6275" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">CLUSTER CONFIGURATION</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>Topology</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">cluster: Cluster</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">build_view(nodes)</FONT></TD></TR></TABLE>>];
+TopologyView [label=<<TABLE BORDER="1" COLOR="#d2dfe0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#ffffff">
+      <TR><TD ALIGN="LEFT" BGCOLOR="#4c6275" CELLPADDING="12"><FONT POINT-SIZE="10" COLOR="#cfe0df">ELIGIBLE-NODE SNAPSHOT</FONT><BR ALIGN="LEFT"/><FONT POINT-SIZE="18" COLOR="white"><B>TopologyView</B></FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">nodes: list[Node]</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">neighbors(node)</FONT></TD></TR><TR><TD ALIGN="LEFT" CELLPADDING="8"><FONT FACE="Courier" POINT-SIZE="11" COLOR="#465b60">distance(a, b)</FONT></TD></TR></TABLE>>];
+
+  {rank=same; Scheduler; Placer;}
+  {rank=same; PendingJob; SortStrategy; PlaceAlgorithm; Topology;}
+  {rank=same; FifoSort; PrioritySort; PackAlgorithm; SpreadAlgorithm; TopologyView;}
+  Server -> Scheduler [label="caches per cluster"];
+  Server -> Placer [label="constructs from locked ORM inventory"];
+  Scheduler -> Placer [label="placement attempt", constraint=false];
+  Scheduler -> PendingJob [label="queues", arrowtail=odiamond, dir=both];
+  Scheduler -> SortStrategy [label="orders with"];
+  Placer -> PlaceAlgorithm [label="selects / ranks with"];
+  Placer -> Topology [label="builds a view"];
+  Topology -> TopologyView [label="creates"];
+  PlaceAlgorithm -> TopologyView [style=dashed, label="reads distances", constraint=false];
+  FifoSort -> SortStrategy [arrowhead=empty, color="#a98d59", constraint=false];
+  PrioritySort -> SortStrategy [arrowhead=empty, color="#a98d59", constraint=false];
+  PackAlgorithm -> PlaceAlgorithm [arrowhead=empty, color="#a98d59", constraint=false];
+  SpreadAlgorithm -> PlaceAlgorithm [arrowhead=empty, color="#a98d59", constraint=false];
+  SortStrategy -> FifoSort [style=invis];
+  SortStrategy -> PrioritySort [style=invis];
+  PlaceAlgorithm -> PackAlgorithm [style=invis];
+  PlaceAlgorithm -> SpreadAlgorithm [style=invis];
+
+}
