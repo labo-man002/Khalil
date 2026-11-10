@@ -55,14 +55,22 @@ The homepage, writing archive, RSS, and sitemap pick it up at build time. For im
 
 The tracked `.openai/hosting.json` identifies the managed Site and declares `dist` as its static output. `npm run build` generates that output. The source is also maintained on GitHub.
 
-For a custom domain, set `SITE_URL` when building. For a GitHub Pages project site:
+The selected GitHub Pages address is `https://labo-man002.github.io/khalil/`. It requires renaming the GitHub repository from `personal-site` to `khalil` and enabling **GitHub Actions** as the Pages source. The connected integration cannot make either administrative change (GitHub returns HTTP 403).
+
+One-time setup in GitHub:
+
+1. Open [repository settings](https://github.com/labo-man002/personal-site/settings) and rename the repository to `khalil`.
+2. Open [Pages settings](https://github.com/labo-man002/khalil/settings/pages). Under **Build and deployment**, select **GitHub Actions** as the source.
+3. Run **Publish to GitHub Pages** from the Actions tab for the first deployment. Once enabled, pushes to `main` publish automatically; documentation-only changes are excluded.
+
+The workflow reads the actual Pages origin and base path from GitHub before building. Renaming the repository or later configuring an owned domain does not require hardcoding a new URL in the workflow. For a local check of the selected address:
 
 ```sh
-SITE_URL=https://labo-man002.github.io BASE_PATH=/personal-site/ npm run build
-BASE_PATH=/personal-site/ npm run check:links
+SITE_URL=https://labo-man002.github.io BASE_PATH=/khalil/ npm run build
+BASE_PATH=/khalil/ npm run check:links
 ```
 
-The CI workflow validates both root hosting and the Pages project prefix. The separate **Publish to GitHub Pages** workflow is manually triggered. Before using it, enable GitHub Pages with GitHub Actions as the source in repository settings. A private repository requires a GitHub plan that supports Pages for private repositories; otherwise change the repository visibility deliberately or use the managed Site. Do not treat the expected Pages URL as deployed until the workflow succeeds.
+The CI workflow validates root hosting and a project prefix derived from the current repository name. The GitHub Pages workflow also runs tests and checks internal links before uploading and deploying its build. Verify a successful deployment before treating the selected address as live. The existing managed Site remains available independently.
 
 ## Content and illustrations
 

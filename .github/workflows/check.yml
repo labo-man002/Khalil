@@ -21,6 +21,8 @@ jobs:
       - run: npm run build
       - run: npm run check:links
       - name: Check GitHub Pages project paths
+        env:
+          PAGES_TEST_BASE: /${{ github.event.repository.name }}/
         run: |
-          BASE_PATH=/personal-site/ SITE_URL=https://labo-man002.github.io npm run build
-          BASE_PATH=/personal-site/ npm run check:links
+          BASE_PATH="$PAGES_TEST_BASE" SITE_URL=https://labo-man002.github.io npm run build
+          BASE_PATH="$PAGES_TEST_BASE" npm run check:links
