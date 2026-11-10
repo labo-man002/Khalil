@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { profile, url } from '../lib/site';
-const { title, description = 'Khalil Ben Maaoui is a software infrastructure engineer in Dresden, working on SpiNNaker2 supercomputer infrastructure, Slurm integration, distributed systems, and topology-aware allocation.', image = 'social-card.png', active = '' } = Astro.props;
+const { title, description = 'Khalil Ben Maaoui is a software infrastructure engineer in Dresden, working on distributed systems, HPC scheduling, and topology-aware allocation.', image = 'social-card.png', active = '' } = Astro.props;
 const fullTitle = title ? `${title} — ${profile.name}` : `${profile.name} — Software Infrastructure Engineer`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const nav = [{ label: 'Work', path: 'work/' }, { label: 'Writing', path: 'writing/' }, { label: 'About', path: 'about/' }];

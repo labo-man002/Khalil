@@ -1911,3 +1911,19 @@
   .original-schema { padding: 17px; }
   .original-schema summary { font-size: 20px; }
 }
+
+/* Personal homepage: professional case-study imagery stays under Work. */
+.profile-hero > a {
+  border-color: var(--line);
+  background: #edf0e8;
+  padding: 16px;
+}
+.profile-hero img {
+  height: auto;
+  object-fit: contain;
+  border: 1px solid #d5dcd0;
+  border-radius: 3px;
+}
+.secondary-projects > .secondary-project:only-child {
+  grid-column: 1 / -1;
+}

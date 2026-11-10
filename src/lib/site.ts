@@ -23,7 +23,7 @@ export const expertise = [
 ];
 
 export const experience = [
-  { company: 'Sparxity · formerly SpiNNcloud', role: 'Software Engineer · Runtime & Infrastructure', date: 'Apr 2025 — Aug 2026', location: 'Hybrid · Germany', intro: 'Contributed to the runtime and infrastructure of a SpiNNaker2 neuromorphic supercomputer: approximately five million cores, 720 interconnected boards, and a 2D hexagonal torus.', details: [
+  { scope: 'work', company: 'Sparxity · formerly SpiNNcloud', role: 'Software Engineer · Runtime & Infrastructure', date: 'Apr 2025 — Aug 2026', location: 'Hybrid · Germany', intro: 'Contributed to the runtime and infrastructure of a SpiNNaker2 neuromorphic supercomputer: approximately five million cores, 720 interconnected boards, and a 2D hexagonal torus.', details: [
     'Drove architecture and implementation across three hardware allocator variants, coordinating scheduling, topology, resource state, and physical machine configuration.',
     'Built deterministic placement heuristics using sliding windows, recursive free-region partitioning, DFS traversal, wrap-around coordinates, and fragmentation-aware scoring.',
     'Proposed and drove the move toward Slurm integration while preserving native scheduling authority and separating board placement into a prolog-stage engine.',
@@ -32,13 +32,15 @@ export const experience = [
     'Worked through YAML-backed inventory with POSIX locks toward database-backed state, synchronized queues, and transactional allocation mappings.',
     'Collaborated with runtime and infrastructure teams and researchers at Sandia National Laboratories and the University of Manchester.',
   ] },
-  { company: 'Rohde & Schwarz', role: 'Working Student · Software Engineering', date: 'Jul 2024 — Mar 2025', location: 'Dresden · Germany', intro: 'Performance engineering, Linux debugging, and test automation for networking and signal-processing systems.', details: [
+  { scope: 'profile', company: 'Rohde & Schwarz', role: 'Working Student · Software Engineering', date: 'Jul 2024 — Mar 2025', location: 'Dresden · Germany', intro: 'Performance engineering, Linux debugging, and test automation for networking and signal-processing systems.', details: [
     'Improved algorithms and data structures in a company-wide signal-transformation library, achieving 2.5× faster execution.',
     'Investigated QEMU guest applications and PTP synchronization failures in O-RAN; traced timing shifts and mixed-traffic interference.',
     'Benchmarked DPDK sender warm-up and jitter, and built Python, Pytest, and Playwright workflows spanning unit, integration, and end-to-end checks.',
   ] },
-  { company: 'Independent · Upwork', role: 'Freelance C++ / JavaScript Developer', date: 'Mar — Jun 2022', location: 'Remote', intro: 'Designed and implemented more than 50 interactive levels for an educational game teaching C++.', details: [] },
+  { scope: 'profile', company: 'Independent · Upwork', role: 'Freelance C++ / JavaScript Developer', date: 'Mar — Jun 2022', location: 'Remote', intro: 'Designed and implemented more than 50 interactive levels for an educational game teaching C++.', details: [] },
 ];
+
+export const profileExperience = experience.filter(entry => entry.scope !== 'work');
 
 export const education = [
   { school: 'Ilmenau University of Technology', degree: 'Exchange · Computer Science', date: '2024 — 2025', place: 'Germany' },
