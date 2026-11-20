@@ -26,3 +26,5 @@ jobs:
         run: |
           BASE_PATH="$PAGES_TEST_BASE" SITE_URL=https://labo-man002.github.io npm run build
           BASE_PATH="$PAGES_TEST_BASE" npm run check:links
+      - run: npx playwright install --with-deps chromium --only-shell
+      - run: npm run test:game:browser
