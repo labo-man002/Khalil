@@ -98,7 +98,7 @@ function render(){
 document.getElementById("music").textContent=state.music?"♫ موسيقى: تخدم":"♫ موسيقى: مطفّية";
 const s=byId[state.id];const app=document.getElementById("app");
 document.getElementById("count").textContent="قرار "+Object.keys(state.answers).length+" / "+questionIds.length;
-document.getElementById("progress").firstElementChild.style.width=(Math.min(100,Math.round((scenes.findIndex(v=>v.id===state.id)+1)/scenes.length*100)))+"%";
+document.getElementById("progress").style.width=(Math.min(100,Math.round((scenes.findIndex(v=>v.id===state.id)+1)/scenes.length*100)))+"%";
 if(state.id==="ending"){renderEnding();return}
 if(!s){go("intro");return}
 if(s.kind==="branch"){const route=state.answers.j3?.value;const texts={records:"فتّشت في تاريخ التعديلات: ثمّة تعديل بتاريخ واضح، أما سبب التعديل موش مكتوب.",adam:"آدم حاول يتهرّب من الإجابة، وبعد وافق يحكي معاك وحدك.",youssef:"يوسف قال إنّ التعديل إداري وطلب منك تستنّى النسخة المراجَعة.",rumor:"سمعت حكايات مختلفة، أما أغلبها منقولة وما فيهاش مصدر مباشر."};app.innerHTML=stage(s)+'<div class="dialog"><div class="speaker">الراوي</div><div class="line">'+escapeHtml(texts[route]||texts.records)+'</div><div class="hint">ما كلّ معلومة تسمعها دليل بنفس القوّة.</div></div><div class="panel"><button class="primary" id="go">نكمل ←</button></div>';document.getElementById("go").onclick=()=>next(s);return}
@@ -130,7 +130,7 @@ function renderEnding(){
  html+='<div class="card"><h2>حُسن الظنّ وسوء الظنّ</h2><p style="font-size:20px;color:#eacb97">«اجْتَنِبُوا كَثِيرًا مِّنَ الظَّنِّ إِنَّ بَعْضَ الظَّنِّ إِثْمٌ»</p><p class="notes">سورة الحجرات، الآية 12 (مقتطف). المعنى اللي تفتحو القصة: ما تزيدش على الوقائع حكم على قلوب الناس، وأيضًا ما تتغافلش على دليل واضح. التفصيل الشرعي يرجع للتفسير المعتمد والعلماء.</p></div>';
  html+='<div class="card"><h2>المراية</h2><p>كيف آدم ما جاوبش على ميساج سامي، شنوّة خمّمت؟ وكيف سامي ما جاوبش على مريم، هل فسّرت نفس التصرف بنفس الطريقة؟</p><p class="notes">السؤال موش باش يلومك. باش يخلّيك تشوف الفرق بين اللي نعرفوه على رواحنا واللي ما نعرفوهش على الناس.</p></div>';
  html+='<div class="panel"><button class="primary" id="again">نعاود نلعب باختيارات أخرى ↺</button> <button class="mini" id="openNotes">نشوف الدفتر والقرارات</button></div>';
- document.getElementById("app").innerHTML=html;document.getElementById("progress").firstElementChild.style.width="100%";
+ document.getElementById("app").innerHTML=html;document.getElementById("progress").style.width="100%";
  document.getElementById("again").onclick=reset;document.getElementById("openNotes").onclick=journal;
 }
 function journal(){
