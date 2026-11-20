@@ -92,6 +92,9 @@ bdi, output { font-variant-numeric:tabular-nums }
   background:#132026ed; border-color:#e8ba7d; border-radius:99px; white-space:nowrap;
   box-shadow:0 3px 12px #10171bcc; font-size:.85rem;
 }
+.spot.first-clue { background:var(--amber); color:var(--ink); font-weight:bold; box-shadow:0 0 0 3px #efbf853c,0 4px 16px #10171bcc }
+.spot.first-clue:hover:enabled { background:#ffdbac }
+.spot.first-clue span { color:inherit }
 .spot span { color:var(--amber); font-size:1.05rem; line-height:1 }
 .spot:disabled { background:#162226; opacity:.87; border-color:#74847b }
 

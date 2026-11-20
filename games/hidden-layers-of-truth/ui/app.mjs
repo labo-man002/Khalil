@@ -46,10 +46,13 @@ function dispatch(event, focus) {
   render(focus, event.type === 'inspect' ? previous : null);
 }
 
-function start(resume) {
-  if (!resume) {
-    state = newStory();
-    events = [];
+function start(resume, music = settings.music) {
+  settings = { ...settings, music };
+  saveSettings(storage, settings);
+  if (!resume || state.sceneId === 'opening') {
+    // The title is the opening shot. Keep its original events for existing saves.
+    events = [{ type: 'advance' }, { type: 'advance' }];
+    state = events.reduce(transition, newStory());
     notice = saveStory(storage, events) ? null : 'unsaved';
   }
   inGame = true;
@@ -75,7 +78,7 @@ function stage(node, beat) {
     <div class="stage-caption"><span class="map-pin" aria-hidden="true"></span>${locations[node.place]}</div>
     ${spots.map(spot => {
       const seen = state.inspected.includes(spot.id);
-      return `<button class="spot" data-action="inspect" data-id="${spot.id}" style="--x:${spot.x}%;--y:${spot.y}%"
+      return `<button class="spot${state.sceneId === 'intro' && !state.inspected.includes('phone') && spot.id === 'phone' ? ' first-clue' : ''}" data-action="inspect" data-id="${spot.id}" style="--x:${spot.x}%;--y:${spot.y}%"
         ${seen ? 'disabled' : ''}><span aria-hidden="true">${seen ? '✓' : '+'}</span>${spot.label}</button>`;
     }).join('')}
     ${beat && state.hotspot ? `<span class="scene-speaker">${cast[beat.speaker][0]}</span>` : ''}
@@ -89,10 +92,12 @@ function title() {
       <p class="english" lang="en" dir="ltr">Hidden Layers of Truth</p>
       <h1>طبقات الحقيقة</h1>
       <p class="chapter-name"><span></span> اللي ما تقالش</p>
-      <p class="premise">تقرير تبدّل. كلمة دارت في الحومة. وسكات ما فهمتوش.</p>
+      <p class="premise">إنت سامي، متطوّع في جمعيّة الجسر. غدوة لازم تبعث تقرير التبرّعات. آدم شاف ميساجك وما جاوبكش، وتوّة لينا تطلب منك توقّف الإرسال.</p>
       <div class="title-actions">
-        ${state ? '<button class="primary" data-action="resume">نكمّل من وين وقفت</button>' : ''}
-        <button class="${state ? '' : 'primary'}" data-action="start">نبدأ الحكاية</button>
+        <button class="primary" data-action="${state ? 'resume' : 'start'}" data-sound="on">
+          <span aria-hidden="true">♫</span> ${state ? 'نكمّل بالموسيقى' : 'نبدأ بالموسيقى'}</button>
+        <button data-action="${state ? 'resume' : 'start'}" data-sound="off">${state ? 'نكمّل بلا صوت' : 'نبدأ بلا صوت'}</button>
+        ${state ? '<button data-action="start">نعاود من اللّول</button>' : ''}
         <button data-action="settings">الإعدادات</button>
         <button data-action="about">على الحكاية</button>
       </div>
@@ -230,7 +235,7 @@ function render(focus, from) {
   }
   let activeControl = '#scene-title';
   if (beat) activeControl = '[data-action="advance"]';
-  else if (node.kind === 'explore') activeControl = '[data-action="inspect"]:not(:disabled)';
+  else if (node.kind === 'explore') activeControl = app.querySelector('.first-clue') ? '.first-clue' : '[data-action="inspect"]:not(:disabled)';
   const target = (focus ? app.querySelector(focus) : null) ?? app.querySelector(activeControl) ?? app.querySelector('#scene-title');
   target?.focus({ preventScroll: true });
   const bounds = target?.getBoundingClientRect();
@@ -312,13 +317,13 @@ document.addEventListener('click', event => {
   switch (control.dataset.action) {
     case 'start':
       if (state) confirmRestart();
-      else start(false);
+      else start(false, control.dataset.sound === 'on');
       break;
     case 'restart':
       dialog.close();
       start(false);
       break;
-    case 'resume': start(true); break;
+    case 'resume': start(true, control.dataset.sound === 'on'); break;
     case 'close': dialog.close(); break;
     case 'settings': settingsPanel(); break;
     case 'journal': journal(); break;

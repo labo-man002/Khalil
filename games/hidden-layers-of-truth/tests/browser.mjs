@@ -75,6 +75,16 @@ try {
       await click(page.locator('#decision button[type=submit]'));
     };
 
+    await page.addInitScript(() => {
+      const connect = AudioNode.prototype.connect;
+      AudioNode.prototype.connect = function (target, ...args) {
+        if (target === this.context.destination) {
+          window.musicMeter = this.context.createAnalyser();
+          connect.call(this, window.musicMeter);
+        }
+        return connect.call(this, target, ...args);
+      };
+    });
     await page.goto(route);
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar-TN');
@@ -82,7 +92,6 @@ try {
     await capture('title');
     await click(action('settings'));
     assert.equal(await panel.locator('#sound').isChecked(), false);
-    await click(panel.locator('label:has(#sound)'));
     await panel.locator('#volume').fill('36');
     await click(panel.locator('label:has(#still)'));
     await click(panel.locator('label:has(#instant)'));
@@ -91,9 +100,23 @@ try {
     assert.equal(await panel.isVisible(), false);
     assert.equal(await action('settings').evaluate(el => document.activeElement === el), true);
 
-    await click(action('start'));
+    const quietStart = variant.name === 'narrow';
+    const start = page.locator(`[data-action="start"][data-sound="${quietStart ? 'off' : 'on'}"]`);
+    assert.equal(await page.evaluate(() => window.musicMeter), undefined);
+    await click(start);
+    assert.equal(await page.locator('.first-clue').evaluate(el => document.activeElement === el), true);
+    if (quietStart) {
+      assert.equal(await page.evaluate(() => window.musicMeter), undefined);
+    } else {
+      await page.waitForFunction(() => {
+        const meter = window.musicMeter;
+        if (!meter || meter.context.state !== 'running') return false;
+        const samples = new Float32Array(meter.fftSize);
+        meter.getFloatTimeDomainData(samples);
+        return samples.some(sample => Math.abs(sample) > 0.02);
+      });
+    }
     await capture('intro');
-    await drain();
     assert.equal(await action('leave').isDisabled(), true);
     if (!mobile) {
       await page.locator('[data-id=laptop]').focus();
