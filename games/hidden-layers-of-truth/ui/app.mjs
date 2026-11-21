@@ -21,6 +21,7 @@ let view = 'splash';
 let typing;
 let previousFocus;
 let walkFrame;
+let sceneEntered = 0;
 let recitation;
 
 const confidenceLevels = [
@@ -294,68 +295,85 @@ function messageMirror(opening) {
   </section>`;
 }
 
+const endingPages = [
+  ['case', 'الحكاية'],
+  ['insights', 'اختياراتك'],
+  ['verse', 'الآية'],
+];
+
 function finish() {
   const outcome = outcomes[state.actions.final];
   const summary = summarize(state);
-  return `<section class="story-panel ending">
-    <p class="label">نهاية الفصل</p>
-    <h1 id="scene-title" tabindex="-1">${outcome.title}</h1>
-    <p class="personal-highlight">${summary.takeaway}</p>
-    <div class="ending-links"><button data-action="ending-insights">نشوف اختياراتي والثقة متاعي</button><button data-action="ending-verse">نسمع الآية</button></div>
-    <section class="case-recap" aria-labelledby="case-title">
-      <h2 id="case-title">شنوّة صار بالحقّ؟</h2>
-      <dl>${caseRecap.map(([question, answer]) => `<div><dt>${question}</dt><dd>${answer}</dd></div>`).join('')}</dl>
-    </section>
-    <section class="case-recap" aria-labelledby="outcome-title">
-      <h2 id="outcome-title">شنوّة تبدّل باختيارك؟</h2>
-      <p>${outcome.consequence}</p>
-      <p>${summary.askedWitness
-        ? state.actions.final === 'correct'
-          ? 'آدم شهد قدّام الناس اللي كان يعرف بالتبديل. حكاية خوّه بقات بيناتكم.'
-          : 'آدم بعثلك كلامو مكتوب. خلّى لك القرار وين تستعملو.'
-        : 'التصحيح بقى على لينا. آدم سلّم عليك من بعيد.'}
-      ${state.actions.lead === 'records' && state.actions.final === 'correct' ? 'لينا زادت في الورقة وقتاش تبدّل الملفّ.' : ''}
-      ${summary.passedRumor ? 'أمينة قالتلك اللي الكلام اللي عاودتو مازال يدور.' : ''}</p>
-    </section>
-    ${messageMirror(summary.opening)}
-    <section class="lesson" aria-labelledby="lesson-title">
-      <h2 id="lesson-title" tabindex="-1">قبل ما تسكّر الحكاية</h2>
-      ${verse()}
-    </section>
-    <section class="reflection" aria-labelledby="reflection-title">
-      <h2 id="reflection-title" tabindex="-1">حكايتك إنت</h2>
-      <ol class="confidence-trail" aria-label="الثقة اللي سجّلتها">${summary.confidenceTrail.map(([label, score]) =>
-        `<li><span>${label}</span><strong>${percent(score)}</strong></li>`).join('')}</ol>
-      <p class="hint confidence-reading">${summary.confidenceReading}</p>
-      <div class="feedback">
-        <h3>كي آدم ما جاوبكش</h3>
-        <p class="hint">${interpretationLabel(summary.opening)} · ${percent(summary.opening.confidence)}</p>
-        <p>${summary.openingFeedback}</p>
-      </div>
-      <div class="feedback">
-        <h3>كي فتّشت على الفلوس</h3>
-        <p>${summary.leadFeedback}</p>
-        <p class="hint">قبل كشف البنك <strong>${percent(summary.before.confidence)}</strong> · ${interpretationLabel(summary.before)}<br>
-          بعد كشف البنك <strong>${percent(summary.after.confidence)}</strong> · ${interpretationLabel(summary.after)}</p>
-        <p>${summary.update}</p>
-      </div>
-      <div class="feedback">
-        <h3>كي أمينة جابتلك الكلام</h3>
-        <p>${summary.rumorFeedback}</p>
-      </div>
-      <details class="decision-recap">
-        <summary>شوف أثر اختياراتك الأخرى</summary>
-        <dl>${summary.actionTrail.map(([label, explanation]) => `<div><dt>${label}</dt><dd>${explanation}</dd></div>`).join('')}</dl>
-      </details>
-      <p class="hint">الكلام هذا على اختياراتك في الحكاية برك.</p>
-    </section>
-    <section class="pattern-recap" aria-labelledby="pattern-title">
-      <h2 id="pattern-title">شنوّة تكرّر في اختياراتك؟</h2>
-      <dl>${summary.patterns.map(([label, example]) => `<div><dt>${label}</dt><dd>${example}</dd></div>`).join('')}</dl>
-    </section>
-    <div class="toolbar"><button class="primary" data-action="start">نعاود نلعب</button>
-      <button data-action="journal">نفتح الدفتر</button><button data-action="source">على الآية</button></div>
-  </section>`;
+  const reasons = [
+    ['أوّل إشارة', interpretationLabel(summary.opening)],
+    ['كي بان الدليل', interpretationLabel(summary.after)],
+    ['من الراي للفعل', chapter.final.options.find(option => option.id === state.actions.final).label],
+  ];
+  return `<main class="finale" data-outcome="${state.actions.final}">
+    <header class="finale-hero">
+      <canvas width="480" height="224" aria-hidden="true"></canvas>
+      <div><p class="label">كمّلت الفصل اللّول</p><h1 id="scene-title" tabindex="-1">${outcome.title}</h1></div>
+    </header>
+    <nav class="finale-nav" aria-label="أقسام النهاية">${endingPages.map(([id, label], index) =>
+      `<button data-action="ending-page" data-id="${id}" aria-controls="ending-${id}" aria-pressed="${index === 0}">${label}</button>`).join('')}</nav>
+    <div class="finale-scroll">
+      <section class="finale-page case-recap" id="ending-case" aria-labelledby="case-title">
+        <h2 id="case-title" tabindex="-1">شنوّة تبدّل باختيارك؟</h2>
+        <p class="personal-highlight">${outcome.consequence}</p>
+        <p>${summary.askedWitness
+          ? state.actions.final === 'correct'
+            ? 'آدم شهد باللي يعرفو، وحكاية خوّه قعدت بيناتكم.'
+            : 'آدم بعثلك كلامو مكتوب. خلّى لك القرار وين تستعملو.'
+          : 'لينا شدّت التصحيح. آدم سلّم عليك من بعيد.'}</p>
+        <h3>شنوّة صار بالحقّ؟</h3>
+        <dl>${caseRecap.map(([question, answer]) => `<div><dt>${question}</dt><dd>${answer}</dd></div>`).join('')}</dl>
+        <button class="primary" data-action="ending-page" data-id="insights">نشوف أثر اختياراتي <span aria-hidden="true">←</span></button>
+      </section>
+      <section class="finale-page reflection" id="ending-insights" aria-labelledby="reflection-title" hidden>
+        <h2 id="reflection-title" tabindex="-1">كيفاش خمّمت في الجولة هاذي؟</h2>
+        <p class="personal-highlight">${summary.takeaway}</p>
+        <ol class="confidence-trail" aria-label="الثقة اللي سجّلتها">${summary.confidenceTrail.map(([label, score]) =>
+          `<li><span>${label}</span><strong>${percent(score)}</strong></li>`).join('')}</ol>
+        <p class="hint confidence-reading">${summary.confidenceReading}</p>
+        <div class="insight-cards">
+          ${summary.patterns.map(([label, example], index) => `<article>
+            <p class="label">${reasons[index][0]}</p><h3>${label}</h3>
+            <p class="insight-choice">${reasons[index][1]}</p><p>${example}</p>
+          </article>`).join('')}
+        </div>
+        <details class="decision-recap">
+          <summary>نرجع لاختياراتي بالتفصيل</summary>
+          <dl>
+            <div><dt>سكوت آدم · ${interpretationLabel(summary.opening)}</dt><dd>${summary.openingFeedback}</dd></div>
+            <div><dt>وقت فتّشت على الفلوس</dt><dd>${summary.leadFeedback}</dd></div>
+            <div><dt>قبل الكشف · ${interpretationLabel(summary.before)}</dt>
+              <dt>بعد الكشف · ${interpretationLabel(summary.after)}</dt><dd>${summary.update}</dd></div>
+            <div><dt>الكلام اللي جابتو أمينة · ${chapter.rumor.options.find(option => option.id === state.actions.rumor).label}</dt><dd>${summary.rumorFeedback}</dd></div>
+            ${summary.actionTrail.map(([label, explanation]) => `<div><dt>${label}</dt><dd>${explanation}</dd></div>`).join('')}
+          </dl>
+        </details>
+        <button data-action="ending-page" data-id="verse">نمشي للآية <span aria-hidden="true">←</span></button>
+      </section>
+      <section class="finale-page lesson" id="ending-verse" aria-labelledby="lesson-title" hidden>
+        <h2 id="lesson-title" tabindex="-1">قبل ما تسكّر الحكاية</h2>
+        ${verse()}
+        ${messageMirror(summary.opening)}
+      </section>
+    </div>
+    <footer class="finale-footer"><button data-action="start">نعاود نلعب</button><button data-action="journal">نفتح الدفتر</button>
+      ${notice ? `<span class="notice" role="status">${messages[notice]}</span>` : ''}</footer>
+  </main>`;
+}
+
+function openEndingPage(id) {
+  const page = document.getElementById(`ending-${id}`);
+  if (!page) return;
+  stopRecitation();
+  app.querySelectorAll('.finale-page').forEach(section => { section.hidden = section !== page; });
+  app.querySelectorAll('.finale-nav button').forEach(button => button.setAttribute('aria-pressed', button.dataset.id === id));
+  const scroll = page.parentElement;
+  scroll.scrollTop = 0;
+  page.querySelector('h2').focus({ preventScroll: true });
 }
 
 function position(node, current) {
@@ -375,14 +393,21 @@ function animateStage(canvas, node, beat, from, replayCup = false) {
   const enteringCup = interaction === 'cup' && (replayCup || from?.hotspot !== 'cup');
   const still = document.documentElement.dataset.still === 'true';
   const sceneId = state.sceneId;
+  const roomEntrance = sceneId === 'morning' || sceneId === 'wait';
+  if (roomEntrance && (startsScene || !from)) {
+    sceneEntered = performance.now() - (still || !from ? 1500 : 0);
+  }
   const portrait = beat ? app.querySelector('.speaker canvas') : null;
   const paint = (x, motion = 0, stride = 0, sceneTime = 0) => {
-    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion, stride, Math.max(0, sceneTime - (enteringCup ? walkDuration : 0)), interaction);
+    const artTime = roomEntrance ? Math.min(1500, performance.now() - sceneEntered)
+      : Math.max(0, sceneTime - (enteringCup ? walkDuration : 0));
+    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion, stride, artTime, interaction);
     if (portrait) drawPortrait(portrait, beat.speaker, beat.mood, motion);
   };
-  const hasAtmosphere = ['room', 'street', 'cafe'].includes(node.place) || ['morning', 'challenge', 'clarify', 'wait'].includes(sceneId);
+  const hasAtmosphere = ['room', 'street', 'cafe'].includes(node.place);
   if (startsScene && sceneId === 'morning') sceneSound('chair');
   if (still || (!beat && previous === to && !hasAtmosphere)) {
+    if (roomEntrance) sceneEntered = performance.now() - 1500;
     if (enteringCup) sceneSound('cup');
     if (still && distance) sceneSound('step', node.place);
     paint(to, 0, 0, 1500 + walkDuration);
@@ -395,6 +420,7 @@ function animateStage(canvas, node, beat, from, replayCup = false) {
   function step(now) {
     const elapsed = now - start;
     if (document.documentElement.dataset.still === 'true') {
+      if (roomEntrance) sceneEntered = now - 1500;
       paint(to);
       return;
     }
@@ -414,7 +440,7 @@ function animateStage(canvas, node, beat, from, replayCup = false) {
       const talking = beat && elapsed < Math.min(3400, Math.max(1050, beat.text.length * 22));
       const stride = previous !== to && walking < 1 ? Math.round(Math.sin(elapsed / 36) * 5) : 0;
       paint(Math.round(previous + (to - previous) * walking), talking ? frame + 1 : 0, stride, elapsed);
-      if (walking === 1 && !talking && !hasAtmosphere) return;
+      if (walking === 1 && !talking && !hasAtmosphere && (!roomEntrance || now - sceneEntered >= 1400)) return;
     }
     walkFrame = requestAnimationFrame(step);
   }
@@ -445,9 +471,16 @@ function render(focus, from) {
   setSceneMusic(opening ? 'title' : musicCue(state), node.place);
   const beats = currentBeats(state);
   const beat = beats?.[state.beatIndex];
+  if (node.kind === 'end') {
+    app.innerHTML = gameHeader() + finish();
+    announcement.textContent = '';
+    drawScene(app.querySelector('.finale canvas'), 'office', 'end');
+    app.querySelector('#scene-title').focus({ preventScroll: true });
+    return;
+  }
   const body = opening ? prologue(beat)
     : beat ? dialogue(beat, state.hotspot && state.beatIndex === beats.length - 1)
-    : node.kind === 'explore' ? investigation(node) : node.kind === 'decision' ? decision(node) : finish();
+    : node.kind === 'explore' ? investigation(node) : decision(node);
   app.innerHTML = gameHeader() + `<main class="game play-layout${opening ? ' opening-layout' : ''}">${stage(node)}
     <div class="play-panel">${body}${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}</div>
   </main>`;
@@ -624,15 +657,7 @@ document.addEventListener('click', event => {
     case 'settings': settingsPanel(); break;
     case 'journal': journal(); break;
     case 'source': source(); break;
-    case 'ending-insights':
-      app.querySelector('#reflection-title').focus();
-      break;
-    case 'ending-verse': {
-      const listen = app.querySelector('.lesson [data-action="recite"]');
-      listen.focus();
-      void playRecitation(listen);
-      break;
-    }
+    case 'ending-page': openEndingPage(control.dataset.id); break;
     case 'recite': void playRecitation(control); break;
     case 'sip':
       cancelAnimationFrame(walkFrame);
