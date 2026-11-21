@@ -223,14 +223,17 @@ try {
     }
     await click(page.locator('[data-id="phone"]'));
     const copy = await page.locator('.dialogue-copy').boundingBox();
-    const speech = await page.locator('.dialogue .speech').boundingBox();
-    assert(speech.y >= 0 && speech.y + 24 <= copy.y + copy.height,
-      'the first line of dialogue is visible without scrolling');
+    const phone = await page.locator('.phone-screen').boundingBox();
+    assert(phone.y >= 0 && phone.y + 20 <= copy.y + copy.height,
+      'the phone appears without scrolling');
+    assert.match(await page.locator('.chat-status').innerText(), /قراه/);
     if (await page.locator('.dialogue-copy').evaluate(el => el.scrollHeight > el.clientHeight)) {
       await page.keyboard.press('PageDown');
       await page.waitForFunction(() => document.querySelector('.dialogue-copy').scrollTop > 0);
     }
     if (!mobile) await hear(53);
+    await click(action('advance'));
+    assert.match(await page.locator('.phone-story figcaption').innerText(), /آدم مع يوسف/);
     await drain();
     assert.equal(await page.locator('[data-id="inbox"]').evaluate(el => el === document.activeElement), true);
     assert.match(await page.locator('#investigation-progress').innerText(), /ميساج لينا/);
@@ -239,6 +242,7 @@ try {
     assert.match(await page.locator('#scene-announcement').innerText(), /^لينا\./);
     await click(action('advance'));
     assert.match(await page.locator('#animated-text').innerText(), /بعثتلها.*لينا قاعدة تكتب.*ما وصلني حتى جواب/);
+    assert.equal(await page.locator('.chat-typing i').count(), 3);
     await drain();
     assert.equal(await action('leave').evaluate(el => el === document.activeElement), true);
     assert.equal(await page.locator('#investigation-progress').count(), 0);
@@ -250,7 +254,8 @@ try {
     assert.equal(await page.locator('[data-speaker="adam"] h1').innerText(), 'آدم');
     assert.match(await page.locator('[data-speaker="adam"]').innerText(), /صاحبك/);
     await drain();
-    await choose('clarify');
+    const meetingChoice = variant.name === 'mobile' ? 'challenge' : variant.name === 'narrow' ? 'wait' : 'clarify';
+    await choose(meetingChoice);
     await drain();
     await capture('investigation');
     await inspect('folder');
@@ -312,6 +317,8 @@ try {
     assert.match(await page.locator('.reflection').innerText(), /86%/);
     assert.match(await page.locator('.reflection').innerText(), /ما جاوبكش/);
     assert.equal(await page.locator('.pattern-recap dt').count(), 3);
+    assert.equal(await page.locator('.mirror-messages article').count(), 2);
+    assert.match(await page.locator('.mirror-messages').innerText(), /طمّنّي عليك/);
     assert.match(await page.locator('.lesson blockquote').innerText(), /ٱلظَّنِّ/);
     await capture('ending', true);
 

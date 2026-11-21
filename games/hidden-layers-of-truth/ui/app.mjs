@@ -1,9 +1,9 @@
 import './style.css';
-import { chapter, decisionStakes, decisionTradeoffs, exhibits, locations, musicCue, sceneTransitions } from '../content/chapter.mjs';
+import { chapter, decisionStakes, decisionTradeoffs, exhibits, locations, messagesOnPhone, musicCue, sceneTransitions } from '../content/chapter.mjs';
 import { evidence, evidenceTypes } from '../content/evidence.mjs';
 import { currentBeats, newStory, transition } from '../engine/story.mjs';
 import { loadSettings, loadStory, saveSettings, saveStory } from '../engine/save.mjs';
-import { chime, setAudio, setSceneMusic } from '../render/audio.mjs';
+import { chime, phoneBuzz, setAudio, setSceneMusic } from '../render/audio.mjs';
 import { cast, drawPortrait, drawScene } from '../render/art.mjs';
 import { caseRecap, interpretationLabel, outcomes, summarize } from '../reflection/summary.mjs';
 
@@ -40,11 +40,12 @@ function dispatch(event, focus) {
   const previous = state;
   const next = transition(state, event);
   if (next === state) return;
-  if (next.evidence.length > state.evidence.length) chime();
+  if (previous.sceneId === 'opening' && next.sceneId === 'intro') phoneBuzz();
+  else if (next.evidence.length > state.evidence.length) chime();
   state = next;
   events.push(event);
   notice = saveStory(storage, events) ? null : 'unsaved';
-  render(focus, event.type === 'inspect' ? previous : null);
+  render(focus, event.type === 'inspect' || (previous.sceneId === 'opening' && next.sceneId === 'intro') ? previous : null);
 }
 
 function start(resume) {
@@ -156,12 +157,26 @@ function gameHeader() {
 }
 
 function exhibit() {
-  const entry = state.sceneId === 'intro' ? exhibits[state.hotspot] :
-    state.sceneId === 'archive' || state.sceneId === 'proof' ? exhibits[state.hotspot] : null;
+  const entry = ['archive', 'proof'].includes(state.sceneId) ? exhibits[state.hotspot] : null;
   if (!entry) return '';
   const [name, ...rows] = entry;
   return `<aside class="exhibit"><h3>${name}</h3><dl>${rows.map(([key, value]) =>
     `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl></aside>`;
+}
+
+function phoneScreen(beat) {
+  if (state.sceneId !== 'intro') return '';
+  const first = state.beatIndex === 0;
+  if (state.hotspot === 'phone') {
+    const content = first
+      ? `<p class="chat-bubble sent">${messagesOnPhone.adam}</p><p class="chat-status">قراه · <bdi>٢١:١٤</bdi></p>`
+      : '<figure class="phone-story"><canvas width="480" height="224" aria-hidden="true"></canvas><figcaption>ستوري آدم مع يوسف في قهوة سي الطاهر</figcaption></figure>';
+    return `<aside class="phone-screen"><h2>آدم</h2>${content}</aside>`;
+  }
+  if (state.hotspot !== 'inbox') return '';
+  return `<aside class="phone-screen"><h2>لينا <bdi class="chat-time">٢٣:٥١</bdi></h2>
+    ${first ? `<div class="chat-bubble incoming">${storyLine(beat.text)}</div>` : `<p class="chat-bubble sent">علاش؟</p>
+    <div class="chat-typing" aria-hidden="true"><i></i><i></i><i></i></div>`}</aside>`;
 }
 
 function dialogue(beat, closing) {
@@ -173,10 +188,11 @@ function dialogue(beat, closing) {
       <canvas width="48" height="48" aria-hidden="true"></canvas>
       <div><h1 tabindex="-1" id="scene-title">${name}</h1><p>${byMessage ? 'ميساج من لينا' : role}</p></div>
     </div>
-    ${storyLine(beat.text)}
+    ${phoneScreen(beat)}
+    ${byMessage ? '' : storyLine(beat.text)}
     ${exhibit()}
     </div>
-    <footer class="dialogue-actions"><button class="primary" data-action="advance">${closing ? 'نسكّر' : 'نكمل'} <span aria-hidden="true">←</span></button></footer>
+    <footer class="dialogue-actions"><button class="primary" data-action="advance">${closing ? 'نسكّر' : state.hotspot === 'phone' ? 'نشوف الستوري' : 'نكمل'} <span aria-hidden="true">←</span></button></footer>
   </section>`;
 }
 
@@ -228,6 +244,27 @@ function decision(node) {
   </section>`;
 }
 
+function messageMirror(opening) {
+  const reply = chapter.mirror.options.find(choice => choice.id === state.actions.mirror);
+  return `<section class="message-mirror" aria-labelledby="mirror-title">
+    <h2 id="mirror-title">قرا الميساج وما جاوبش</h2>
+    <div class="mirror-messages">
+      <article class="phone-screen">
+        <h3>من سامي لآدم</h3>
+        <p class="chat-bubble">${messagesOnPhone.adam}</p>
+        <p class="chat-status">آدم قراه وما جاوبش</p>
+        <p class="mirror-response"><strong>شنوّة خمّمت وقتها</strong>${interpretationLabel(opening)}</p>
+      </article>
+      <article class="phone-screen">
+        <h3>من مريم لسامي</h3>
+        <p class="chat-bubble">${messagesOnPhone.maryam}</p>
+        <p class="chat-status">سامي قراه وما جاوبش</p>
+        <p class="mirror-response"><strong>شنوّة قلت لمريم</strong>${reply.label}</p>
+      </article>
+    </div>
+  </section>`;
+}
+
 function finish() {
   const outcome = outcomes[state.actions.final];
   const summary = summarize(state);
@@ -273,6 +310,7 @@ function finish() {
       <h2 id="pattern-title">شنوّة تكرّر في اختياراتك؟</h2>
       <dl>${summary.patterns.map(([label, example]) => `<div><dt>${label}</dt><dd>${example}</dd></div>`).join('')}</dl>
     </section>
+    ${messageMirror(summary.opening)}
     <section class="lesson" aria-labelledby="lesson-title">
       <h2 id="lesson-title">العبرة من الحكاية</h2>
       ${verse()}
@@ -292,13 +330,14 @@ function animateStage(canvas, node, beat, from) {
   const to = position(node, state);
   const sceneId = state.sceneId;
   const portrait = beat ? app.querySelector('.speaker canvas') : null;
-  const paint = (x, motion = 0, stride = 0) => {
-    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion, stride);
+  const paint = (x, motion = 0, stride = 0, sceneTime = 0) => {
+    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion, stride, sceneTime);
     if (portrait) drawPortrait(portrait, beat.speaker, beat.mood, motion);
   };
-  const previous = from ? position(node, from) : to;
-  if (document.documentElement.dataset.still === 'true' || (!beat && previous === to)) {
-    paint(to);
+  const previous = from?.sceneId === 'opening' ? 45 : from ? position(node, from) : to;
+  const hasAtmosphere = ['room', 'street', 'cafe'].includes(node.place) || ['morning', 'challenge', 'clarify', 'wait'].includes(sceneId);
+  if (document.documentElement.dataset.still === 'true' || (!beat && previous === to && !hasAtmosphere)) {
+    paint(to, 0, 0, sceneId === 'wait' ? 1500 : 0);
     return;
   }
   const start = performance.now();
@@ -315,8 +354,8 @@ function animateStage(canvas, node, beat, from) {
       lastFrame = frame;
       const talking = beat && elapsed < Math.min(3400, Math.max(1050, beat.text.length * 22));
       const stride = previous !== to && walking < 1 ? [0, 3, 0, -3][frame % 4] : 0;
-      paint(Math.round(previous + (to - previous) * walking), talking ? frame + 1 : 0, stride);
-      if (walking === 1 && !talking) return;
+      paint(Math.round(previous + (to - previous) * walking), talking ? frame + 1 : 0, stride, elapsed);
+      if (walking === 1 && !talking && !hasAtmosphere) return;
     }
     walkFrame = requestAnimationFrame(step);
   }
@@ -342,7 +381,7 @@ function render(focus, from) {
   const node = chapter[state.sceneId];
   document.body.classList.add('playing');
   const opening = state.sceneId === 'opening';
-  setSceneMusic(opening ? 'title' : musicCue(state));
+  setSceneMusic(opening ? 'title' : musicCue(state), node.place);
   const beats = currentBeats(state);
   const beat = beats?.[state.beatIndex];
   const body = opening ? prologue(beat)
@@ -353,6 +392,8 @@ function render(focus, from) {
   </main>`;
   announcement.textContent = beat ? `${cast[beat.speaker][0]}. ${beat.text}` : '';
   animateStage(app.querySelector('.stage canvas'), node, beat, from);
+  const storyArt = app.querySelector('.phone-story canvas');
+  if (storyArt) drawScene(storyArt, 'cafe', 'adam-story');
   if (beat && !settings.instantText && document.documentElement.dataset.still !== 'true') typeLine(beat.text);
   let activeControl = '#scene-title';
   if (beat) activeControl = '[data-action="advance"]';
