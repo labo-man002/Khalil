@@ -34,10 +34,10 @@ try {
   });
 
   for (const variant of [
-    { name: 'desktop', viewport: { width: 1366, height: 1024 }, ending: 'correct', lead: 'records', title: 'قدّام نفس الناس' },
+    { name: 'desktop', viewport: { width: 1366, height: 1024 }, ending: 'correct', lead: 'records', title: 'توضّحت الحكاية' },
     { name: 'mobile', viewport: { width: 390, height: 844 }, ending: 'internal', lead: 'adam', title: 'التقرير عند اللجنة' },
     { name: 'narrow', viewport: { width: 320, height: 568 }, ending: 'post', lead: 'witnesses', title: 'سبق الكلام' },
-    { name: 'landscape', viewport: { width: 740, height: 320 }, ending: 'correct', lead: 'youssef', title: 'قدّام نفس الناس' },
+    { name: 'landscape', viewport: { width: 740, height: 320 }, ending: 'correct', lead: 'youssef', title: 'توضّحت الحكاية' },
   ]) {
     const mobile = variant.name !== 'desktop';
     const page = await browser.newPage({ viewport: variant.viewport, hasTouch: mobile, isMobile: mobile, reducedMotion: 'reduce' });
@@ -256,10 +256,27 @@ try {
     assert.equal(await action('leave').evaluate(el => el === document.activeElement), true);
     assert.equal(await page.locator('#investigation-progress').count(), 0);
     await click(action('leave'));
+    if (!mobile) await page.emulateMedia({ reducedMotion: 'no-preference' });
     await choose('exclude', 75);
     assert.match(await page.locator('#animated-text').innerText(), /نهار الجمعة الصباح/);
     assert.equal(await page.locator('[data-speaker="sami"] h1').innerText(), 'سامي');
-    await click(action('advance'));
+    if (!mobile) {
+      const witnesses = () => page.locator('.stage canvas').evaluate(canvas =>
+        Array.from(canvas.getContext('2d').getImageData(343, 125, 137, 65).data).join());
+      const entering = await witnesses();
+      await page.waitForFunction(first => {
+        const canvas = document.querySelector('.stage canvas');
+        return Array.from(canvas.getContext('2d').getImageData(343, 125, 137, 65).data).join() !== first;
+      }, entering);
+      await page.waitForTimeout(1550);
+      await click(action('advance'));
+      const settled = await witnesses();
+      await page.waitForTimeout(450);
+      assert.equal(await witnesses(), settled, 'the next line must keep the chairs and witnesses in place');
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+    } else {
+      await click(action('advance'));
+    }
     assert.equal(await page.locator('[data-speaker="adam"] h1').innerText(), 'آدم');
     assert.match(await page.locator('[data-speaker="adam"]').innerText(), /صاحبك/);
     await drain();
@@ -325,20 +342,29 @@ try {
     await drain();
     assert.equal(await page.locator('#scene-title').textContent(), variant.title);
     const recap = page.locator('.case-recap').first();
-    assert.match(await recap.innerText(), /2,400/);
+    assert.match(await recap.innerText(), /2,400. دينار/);
     assert.match(await recap.innerText(), /قعدوا في حساب الجمعيّة/);
     assert.match(await recap.innerText(), /ما تأكّدناش/);
-    assert.match(await page.locator('.reflection').innerText(), /100%/);
-    assert.match(await page.locator('.reflection').innerText(), /ما جاوبكش/);
-    assert.equal(await page.locator('.pattern-recap dt').count(), 3);
+    const endingTab = id => page.locator(`.finale-nav [data-id="${id}"]`);
+    const endingBounds = await page.locator('.finale').boundingBox();
+    assert(Math.abs(endingBounds.y + endingBounds.height - variant.viewport.height) <= 1);
+    assert.equal(await page.locator('#ending-insights').isVisible(), false);
+    await capture('ending');
+    await click(endingTab('insights'));
+    assert.equal(await endingTab('insights').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#reflection-title').evaluate(el => el === document.activeElement), true);
+    assert.equal(await recap.isVisible(), false);
+    assert.equal(await page.locator('.insight-cards article').count(), 3);
+    assert.match(await page.locator('.insight-cards').innerText(), /قرا وما جاوبش|ما جاوبكش/);
+    assert.deepEqual(await page.locator('.confidence-trail bdi').allTextContents(), ['75%', '25%', '100%']);
+    await capture('insights');
+    await click(page.locator('.decision-recap summary'));
+    assert.equal(await page.locator('.decision-recap dd').count(), 7);
+    await click(endingTab('verse'));
+    assert.equal(await page.locator('.finale-scroll').evaluate(el => el.scrollTop), 0);
     assert.equal(await page.locator('.mirror-messages article').count(), 2);
     assert.match(await page.locator('.mirror-messages').innerText(), /طمّنّي عليك/);
     assert.match(await page.locator('.lesson blockquote').innerText(), /يَا أَيُّهَا.*وَلَا تَجَسَّسُوا.*تَوَّابٌ رَحِيمٌ/);
-    assert.deepEqual(await page.locator('.confidence-trail bdi').allTextContents(), ['75%', '25%', '100%']);
-    await click(action('ending-insights'));
-    assert.equal(await page.locator('#reflection-title').evaluate(el => el === document.activeElement), true);
-    await click(page.locator('.decision-recap summary'));
-    assert.equal(await page.locator('.decision-recap dd').count(), 3);
     if (process.env.GAME_VERSE_AUDIO && !mobile) {
       await page.route('https://everyayah.com/**/049012.mp3', route => route.fulfill({
         path: process.env.GAME_VERSE_AUDIO, contentType: 'audio/mpeg',
@@ -350,7 +376,7 @@ try {
           return play.call(this);
         };
       });
-      await click(action('ending-verse'));
+      await click(action('recite'));
       await page.waitForFunction(() => window.versePlayer?.currentTime > 0.12);
       await page.waitForFunction(() => {
         const meter = window.musicMeter;
@@ -358,10 +384,12 @@ try {
         meter.getFloatTimeDomainData(samples);
         return samples.every(sample => Math.abs(sample) < 0.001);
       });
-      await click(action('recite'));
-      assert.equal(await action('recite').textContent(), 'نسمع الآية');
+      await click(endingTab('case'));
+      assert.equal(await page.evaluate(() => window.versePlayer.paused), true);
     }
-    await capture('ending', true);
+    await click(endingTab('case'));
+    assert.equal(await page.locator('#ending-verse').isVisible(), false);
+    assert.equal(await recap.isVisible(), true);
 
     await page.reload();
     await click(action('enter'));
