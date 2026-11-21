@@ -233,7 +233,7 @@ function cafe(p) {
   noise(0,40,480,136,460,'#ffd09b23');
 }
 
-function sprite(ctx,name,x,y,face=1,muted=false) {
+function sprite(ctx,name,x,y,face=1,muted=false,motion=0) {
   const [,shirt,skin,hair] = cast[name];
   ctx.save();
   ctx.globalAlpha = muted ? 0.60 : 1;
@@ -247,7 +247,10 @@ function sprite(ctx,name,x,y,face=1,muted=false) {
   box(3,-3,11,4,'#131c20');
   poly([[-8,-38],[7,-38],[12,-30],[12,-15],[-11,-15],[-12,-30]],shirt);
   box(-10,-30,2,13,'#ffffff20');
-  box(8,-25,4,11,skin);
+  const arm = motion % 2 ? 3 : 0;
+  box(8,-25-arm,4,11,skin);
+  if (arm) box(11,-25-arm,4,3,skin);
+
   box(-5,-51,13,14,skin);
   box(-7,-48,3,8,skin);
   box(-6,-53,13,6,hair);
@@ -255,12 +258,13 @@ function sprite(ctx,name,x,y,face=1,muted=false) {
   if (name==='maryam' || name==='lina' || name==='amina') box(-7,-47,4,12,hair);
   if (name==='youssef') box(3,-43,5,4,hair);
   box(5,-47,2,2,'#13181e');
+  if (motion) box(5,-41,3,motion % 2 ? 2 : 1,'#673c38');
   ctx.restore();
 }
 
 const scenes = {room, office, street, cafe};
 
-export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'room' ? 249 : 145) {
+export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'room' ? 249 : 145, motion = 0) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const p = painter(ctx);
@@ -272,7 +276,11 @@ export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'ro
     cafe: [['adam',351,159,-1]],
   };
   const people = [...featured[place], ['sami',samiX,189,1]];
-  for (const person of people) sprite(ctx, ...person, speaker && person[0] !== speaker);
+  for (const [name, x, y, face] of people) {
+    const active = name === speaker;
+    const bob = motion && active ? motion % 3 - 1 : 0;
+    sprite(ctx, name, x, y + bob, face, speaker && !active, active ? motion : 0);
+  }
   p.noise(0,0,W,H,2000,'#d5cfba0c');
   const shade = ctx.createRadialGradient(W/2,H/2,66,W/2,H/2,260);
   shade.addColorStop(0,'transparent');
@@ -280,13 +288,14 @@ export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'ro
   p.box(0,0,W,H,shade);
   const active = people.find(person => person[0] === speaker);
   if (active) {
-    const [name,x,y] = active;
+    const [name,x,feet] = active;
+    const y = feet + (motion ? motion % 3 - 1 : 0);
     p.poly([[x,y-59],[x-5,y-65],[x-5,y-71],[x+5,y-71],[x+5,y-65]], '#111c24');
     p.poly([[x,y-61],[x-3,y-66],[x-3,y-69],[x+3,y-69],[x+3,y-66]], cast[name][5]);
   }
 }
 
-export function drawPortrait(canvas, speaker, mood) {
+export function drawPortrait(canvas, speaker, mood, motion = 0) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const [,shirt,skin,hair] = cast[speaker];
@@ -308,8 +317,9 @@ export function drawPortrait(canvas, speaker, mood) {
   if (speaker==='lina') box(16,25,2,4,'#efbe88');
   if (speaker==='maryam') poly([[9,27],[15,30],[20,39],[33,35],[33,39],[17,43],[9,36]],'#b983a0');
   if (speaker==='youssef') poly([[16,25],[22,28],[33,25],[35,27],[28,33],[21,32]],hair);
-  box(22,19,3,2,'#231e21');
-  box(31,18,3,2,'#231e21');
+  const blink = motion > 0 && motion % 17 === 0;
+  box(22,19,3,blink ? 1 : 2,'#231e21');
+  box(31,18,3,blink ? 1 : 2,'#231e21');
   if (mood==='tense') {
     box(21,16,3,1,hair);
     box(25,17,2,1,hair);
@@ -318,7 +328,7 @@ export function drawPortrait(canvas, speaker, mood) {
     box(22,17,2,1,hair);
     box(24,16,2,1,hair);
   }
-  box(28,26,4,1,mood==='warm' ? '#e3b69a' : '#734a46');
+  box(28,26,4,motion % 3 === 1 ? 3 : 1,mood==='warm' ? '#e3b69a' : '#734a46');
   if (mood==='warm') box(32,25,2,1,'#e3b69a');
   noise(0,0,48,48,165,'#faf0dc16');
 }

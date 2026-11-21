@@ -155,3 +155,12 @@ test('music follows the new clue, confession and reveal without foreshadowing th
   assert.equal(cue('revision'), 'reveal');
   assert.equal(cue('end'), 'end');
 });
+
+test('reflection reports the player’s actual pattern even when a revision contradicts the document', () => {
+  const revised = summarize(run({ money: 'missing', revision: 'moved', rumor: 'share' }).state);
+  const contrary = summarize(run({ money: 'moved', revision: 'missing', rumor: 'share' }).state);
+  assert.equal(revised.patterns[1][0], 'الدليل بدّل وجهة نظرك');
+  assert.equal(revised.patterns[2][0], 'تثبّتّ من الفلوس، واستعجلت في الكلام');
+  assert.equal(contrary.patterns[1][0], 'الراي ما مشاش مع الكشف');
+  assert.equal(contrary.patterns[2][0], 'الكلام دار قبل التثبّت');
+});

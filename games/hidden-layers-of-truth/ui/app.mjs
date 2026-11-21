@@ -1,5 +1,5 @@
 import './style.css';
-import { chapter, exhibits, locations, musicCue } from '../content/chapter.mjs';
+import { chapter, decisionStakes, decisionTradeoffs, exhibits, locations, musicCue, sceneTransitions } from '../content/chapter.mjs';
 import { evidence, evidenceTypes } from '../content/evidence.mjs';
 import { currentBeats, newStory, transition } from '../engine/story.mjs';
 import { loadSettings, loadStory, saveSettings, saveStory } from '../engine/save.mjs';
@@ -72,7 +72,7 @@ function stage(node) {
   return `<div class="stage" data-place="${node.place}">
     <canvas width="480" height="224" aria-hidden="true"></canvas>
     <div class="weather" aria-hidden="true"></div>
-    <div class="stage-caption"><span class="map-pin" aria-hidden="true"></span>${locations[node.place]}</div>
+    <div class="stage-caption"><span class="map-pin" aria-hidden="true"></span>${sceneTransitions[state.sceneId] ?? locations[node.place]}</div>
     ${spots.map(spot => {
       const seen = state.inspected.includes(spot.id);
       return `<button class="spot${state.sceneId === 'intro' && !state.inspected.includes('phone') && spot.id === 'phone' ? ' first-clue' : ''}" data-action="inspect" data-id="${spot.id}" style="--x:${spot.x}%;--y:${spot.y}%"
@@ -103,9 +103,10 @@ function splash() {
       const delay = (i * 173) % 1750;
       return `<i style="--x:${x}%;--delay:-${delay}ms;--speed:${920 + (i % 5) * 190}ms"></i>`;
     }).join('')}</div>
+    <div class="splash-audio">${soundButton()}</div>
     <div class="splash-menu">
       <p class="splash-series" lang="en" dir="ltr">Hidden Layers of Truth</p>
-      <h1 id="game-title">طبقات <span>الحقيقة</span></h1>
+      <h1 id="game-title">بين <span>السطور</span></h1>
       <button class="primary splash-start" data-action="enter">إبدا</button>
     </div>
   </main>`;
@@ -137,7 +138,7 @@ function chapterMenu() {
 
 function gameHeader() {
   const inGame = view === 'game';
-  return `<header class="top"><span class="brand">طبقات الحقيقة</span><div class="toolbar">
+  return `<header class="top"><span class="brand">بين السطور</span><div class="toolbar">
     ${soundButton()}${inGame ? `<button data-action="journal">الدفتر <bdi>${state.evidence.length}</bdi></button>` : ''}
     <button data-action="settings">الضبط</button>
     <button data-action="${inGame ? 'menu' : 'about'}">${inGame ? 'القائمة' : 'على الحكاية'}</button>
@@ -181,8 +182,10 @@ function decision(node) {
   return `<section class="story-panel">
     ${before ? `<p class="earlier"><strong>اللي خمّمتو قبل الكشف</strong> ${interpretationLabel(before)} · ${percent(before.confidence)}</p>` : ''}
     <h1 id="scene-title" tabindex="-1">${node.prompt}</h1>
+    ${decisionStakes[state.sceneId] ? `<p class="stakes">${decisionStakes[state.sceneId]}</p>` : ''}
     <form id="decision"><fieldset><legend class="sr-only">اختيارك</legend>
-      ${node.options.map(choice => `<label class="choice"><input type="radio" name="choice" value="${choice.id}" required><span>${choice.label}</span></label>`).join('')}
+      ${node.options.map(choice => `<label class="choice"><input type="radio" name="choice" value="${choice.id}" required><span>${choice.label}${decisionTradeoffs[state.sceneId]?.[choice.id]
+        ? `<small class="tradeoff">${decisionTradeoffs[state.sceneId][choice.id]}</small>` : ''}</span></label>`).join('')}
     </fieldset>
     ${node.proposition ? `<div class="confidence"><label for="confidence">قدّاش واثق في رايك؟</label>
       <input type="range" name="confidence" id="confidence" min="0" max="100" value="50" dir="ltr">
@@ -232,6 +235,15 @@ function finish() {
       </div>
       <p class="hint">الكلام هذا على اختياراتك في الحكاية برك.</p>
     </section>
+    <section class="pattern-recap" aria-labelledby="pattern-title">
+      <h2 id="pattern-title">شنوّة تكرّر في اختياراتك؟</h2>
+      <dl>${summary.patterns.map(([label, example]) => `<div><dt>${label}</dt><dd>${example}</dd></div>`).join('')}</dl>
+    </section>
+    <section class="lesson" aria-labelledby="lesson-title">
+      <h2 id="lesson-title">العبرة من الحكاية</h2>
+      ${verse()}
+      <p>آدم قرا وما جاوبش، وسامي عمل نفس الشي مع مريم. في المرّتين شفنا نفس الحركة، والأسباب كانت مختلفة. تنجّم تقول «ما جاوبنيش» وتواجه المشكلة، وتستنّى قبل ما تقول «تعمّد يضرّني». وزادة كي يتصلّح غلطة في التقرير، ردّ بالك الكلام على شكون غلط ما يدورش قبل التثبّت.</p>
+    </section>
     <div class="toolbar"><button class="primary" data-action="start">نعاود نلعب</button>
       <button data-action="journal">نفتح الدفتر</button><button data-action="source">على الآية</button></div>
   </section>`;
@@ -244,17 +256,34 @@ function position(node, current) {
 
 function animateStage(canvas, node, beat, from) {
   const to = position(node, state);
-  const paint = x => drawScene(canvas, node.place, state.sceneId, beat?.speaker, x);
+  const sceneId = state.sceneId;
+  const portrait = beat ? app.querySelector('.speaker canvas') : null;
+  const paint = (x, motion = 0) => {
+    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion);
+    if (portrait) drawPortrait(portrait, beat.speaker, beat.mood, motion);
+  };
   const previous = from ? position(node, from) : to;
-  if (previous === to || document.documentElement.dataset.still === 'true') {
+  if (document.documentElement.dataset.still === 'true' || (!beat && previous === to)) {
     paint(to);
     return;
   }
   const start = performance.now();
+  let lastFrame = -1;
   function step(now) {
-    const elapsed = Math.min((now - start) / 350, 1);
-    paint(Math.round(previous + (to - previous) * elapsed));
-    if (elapsed < 1) walkFrame = requestAnimationFrame(step);
+    const elapsed = now - start;
+    if (document.documentElement.dataset.still === 'true') {
+      paint(to);
+      return;
+    }
+    const frame = Math.floor(elapsed / 85);
+    const walking = Math.min(elapsed / 420, 1);
+    if (frame !== lastFrame) {
+      lastFrame = frame;
+      const talking = beat && elapsed < Math.min(3400, Math.max(1050, beat.text.length * 22));
+      paint(Math.round(previous + (to - previous) * walking), talking ? frame + 1 : 0);
+      if (walking === 1 && !talking) return;
+    }
+    walkFrame = requestAnimationFrame(step);
   }
   paint(previous);
   walkFrame = requestAnimationFrame(step);
@@ -264,7 +293,7 @@ function render(focus, from) {
   finishTyping();
   cancelAnimationFrame(walkFrame);
   if (view !== 'game') {
-    setSceneMusic('street');
+    setSceneMusic(view === 'splash' ? 'title' : 'street');
     app.innerHTML = view === 'splash' ? splash() : gameHeader() + chapterMenu();
     drawScene(app.querySelector('canvas'), 'street', view);
     const target = focus ?? (view === 'splash' ? '[data-action="enter"]' : '.chapter-actions .primary');
@@ -280,10 +309,7 @@ function render(focus, from) {
   app.innerHTML = gameHeader() + `<main class="game">${stage(node)}${body}
   ${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}</main>`;
   animateStage(app.querySelector('.stage canvas'), node, beat, from);
-  if (beat) {
-    drawPortrait(app.querySelector('.speaker canvas'), beat.speaker, beat.mood);
-    if (!settings.instantText && document.documentElement.dataset.still !== 'true') typeLine(beat.text);
-  }
+  if (beat && !settings.instantText && document.documentElement.dataset.still !== 'true') typeLine(beat.text);
   let activeControl = '#scene-title';
   if (beat) activeControl = '[data-action="advance"]';
   else if (node.kind === 'explore') activeControl = app.querySelector('.first-clue') ? '.first-clue' : '[data-action="inspect"]:not(:disabled)';
@@ -350,9 +376,13 @@ function journal() {
     ${judgments.length ? `<h3>أحكامي والثقة فيها</h3><ol class="judgments">${judgments.join('')}</ol>` : ''}`);
 }
 
+function verse() {
+  return `<blockquote lang="ar">﴿ٱجْتَنِبُوا۟ كَثِيرًۭا مِّنَ ٱلظَّنِّ إِنَّ بَعْضَ ٱلظَّنِّ إِثْمٌۭ﴾</blockquote>
+    <p class="hint">من سورة الحجرات، الآية <bdi dir="ltr">49:12</bdi>.</p>`;
+}
+
 function source() {
-  openPanel('على الآية', `<blockquote lang="ar">﴿ٱجْتَنِبُوا۟ كَثِيرًۭا مِّنَ ٱلظَّنِّ إِنَّ بَعْضَ ٱلظَّنِّ إِثْمٌۭ﴾</blockquote>
-    <p>من سورة الحجرات، الآية <bdi dir="ltr">49:12</bdi>.</p>
+  openPanel('على الآية', `${verse()}
     <p>في الحكاية شفت ناس تسمع كلمة وتعاودها، وناس تشكّ وتسأل قبل ما تحكم. تنجّم تقرا الآية كاملة من اللينك.</p>
     <p><a href="https://quran.com/ar/49/12" target="_blank" rel="noopener noreferrer">نقرا الآية كاملة</a></p>`);
 }
@@ -372,8 +402,8 @@ document.addEventListener('click', event => {
       break;
     case 'splash':
       view = 'splash';
-      setAudio({ ...settings, music: false });
       render();
+      syncSound();
       break;
     case 'start':
       if (state) confirmRestart();

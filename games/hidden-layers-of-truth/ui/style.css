@@ -239,3 +239,25 @@ blockquote { margin:0 0 .6rem; font-size:1.3rem; color:var(--amber) }
 .feedback { border-block-end: 1px solid var(--frame); padding-block: .65rem }
 .feedback h3 { color: var(--amber); margin-block-end: .2rem }
 .feedback + .hint { margin-block-start: .7rem }
+
+.splash-audio { position:absolute; inset-block-start:clamp(1rem,3vw,2.5rem); inset-inline-end:clamp(1rem,4vw,3.5rem) }
+.splash-audio button { background:#111d26e8; border-color:#d9a87699; box-shadow:0 6px 26px #091015b3 }
+.splash-menu { position:relative; padding-inline-start:clamp(.8rem,2vw,1.5rem); border-inline-start:2px solid #f5bb7a8c }
+.dialogue .speech { animation:dialogue-in .28s ease-out both }
+@keyframes dialogue-in { from { opacity:.6; transform:translateY(4px) } to { opacity:1; transform:translateY(0) } }
+.stakes { color:var(--muted); margin-block:.55rem .75rem; max-width:65ch }
+.tradeoff { display:block; color:var(--muted); margin-block-start:.15rem; font-size:.88rem }
+.pattern-recap, .lesson { margin-block:1rem; padding:clamp(.85rem,2vw,1.2rem); border:1px solid var(--frame); border-radius:6px; background:var(--raised) }
+.pattern-recap dl { display:grid; gap:.65rem; margin-top:.55rem }
+.pattern-recap dt { color:var(--amber); font-weight:bold }
+.pattern-recap dd { margin:0 }
+.lesson { border-inline-start:3px solid var(--amber) }
+.lesson blockquote { margin-block:.7rem .25rem }
+
+.splash::after {
+  content:""; position:absolute; z-index:-3; pointer-events:none; inset:54% 4% 4%;
+  background:radial-gradient(ellipse at 48% 64%,#ed9d4c45,transparent 46%);
+  transform:perspective(280px) rotateX(24deg);
+  mix-blend-mode:screen;
+  animation:street-halo 4.2s ease-in-out infinite alternate;
+}

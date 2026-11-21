@@ -103,10 +103,18 @@ try {
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar-TN');
     assert.equal(await page.locator('html').getAttribute('data-still'), 'true');
     assert.equal(await page.locator('.chapter-card').count(), 0);
-    assert.equal(await page.locator('.splash h1').innerText(), 'طبقات الحقيقة');
+    assert.equal(await page.locator('.splash h1').innerText(), 'بين السطور');
     assert.equal(await page.locator('.splash-series').innerText(), 'Hidden Layers of Truth');
     assert.equal(await page.locator('.splash-menu').evaluate(el => getComputedStyle(el).animationName), 'none');
     await capture('title');
+    if (!mobile) {
+      assert.equal(await page.evaluate(() => window.musicMeter), undefined);
+      await click(action('sound'));
+      await hear(69);
+      await click(action('sound'));
+      assert.equal(await action('sound').getAttribute('aria-pressed'), 'false');
+      await action('enter').focus();
+    }
     if (!mobile) {
       assert.equal(await action('enter').evaluate(el => document.activeElement === el), true);
       await page.keyboard.press('Enter');
@@ -120,7 +128,7 @@ try {
     await click(action('settings'));
     assert.equal(await action('sound').getAttribute('aria-pressed'), 'false');
     await panel.locator('#volume').fill('36');
-    await click(panel.locator('label:has(#still)'));
+    if (mobile) await click(panel.locator('label:has(#still)'));
     await click(panel.locator('label:has(#instant)'));
     if (!mobile) await page.keyboard.press('Escape');
     else await click(action('close', panel));
@@ -131,7 +139,7 @@ try {
     const music = action('sound');
     assert.equal(await page.locator('.chapter-card').count(), 1);
     assert.equal(await page.locator('.chapter-stage canvas').count(), 1);
-    assert.equal(await page.evaluate(() => window.musicMeter), undefined);
+    if (mobile) assert.equal(await page.evaluate(() => window.musicMeter), undefined);
     if (!quietStart) await click(music);
     assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
     await click(action('start'));
@@ -150,9 +158,14 @@ try {
     await capture('intro');
     assert.equal(await action('leave').isDisabled(), true);
     if (!mobile) {
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
       await page.locator('[data-id=laptop]').focus();
       await page.keyboard.press('Enter');
       assert.equal(await action('advance').evaluate(el => document.activeElement === el), true);
+      const portrait = page.locator('.speaker canvas');
+      const firstFrame = await portrait.evaluate(canvas => canvas.toDataURL());
+      await page.waitForFunction(previous => document.querySelector('.speaker canvas').toDataURL() !== previous, firstFrame);
+      await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.keyboard.press('Enter');
       await page.keyboard.press('Enter');
     } else {
@@ -223,6 +236,7 @@ try {
     await click(action('leave'));
     assert.match(await page.locator('.earlier').innerText(), /35%/);
     await choose('moved', 86);
+    assert.equal(await page.locator('.tradeoff').count(), 3);
     await choose(variant.ending);
     await drain();
     assert.equal(await page.locator('#scene-title').textContent(), variant.title);
@@ -232,6 +246,8 @@ try {
     assert.match(await recap.innerText(), /ما تأكّدناش/);
     assert.match(await page.locator('.reflection').innerText(), /86%/);
     assert.match(await page.locator('.reflection').innerText(), /ما جاوبكش/);
+    assert.equal(await page.locator('.pattern-recap dt').count(), 3);
+    assert.match(await page.locator('.lesson blockquote').innerText(), /ٱلظَّنِّ/);
     await capture('ending', true);
 
     await page.reload();

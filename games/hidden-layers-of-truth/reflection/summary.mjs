@@ -30,6 +30,28 @@ const rumorFeedback = {
   share: 'خلّيت أمينة تدوّر الكلام وهي بيدها ما سمعتوش من يوسف. كان تنجم تعلّم الناس اللي التقرير موقوف وتخلّي الجملة تستنّى التثبّت.',
 };
 
+function recognizePattern(opening, before, after, actions) {
+  const sameSign = opening.interpretation === 'exclude'
+    ? ['نفس الحركة، زوز تفسيرات', 'كي آدم ما جاوبكش، خمّمت اللي يحبّ ينحّيك. كي إنت ما جاوبتش مريم، عرفت اللي الحكاية كانت نسيان. نفس «قرا وما جاوبش» ينجم يغطّي على أسباب مختلفة.']
+    : ['خلّيت بلاصة لتفسير آخر', 'من الميساج والتصويرة ما حسمتش اللي آدم يحبّ ينحّيك. حكاية مريم تورّيك علاش: شافت نفس السكات منك، وما كانتش تعرف ظروفك.'];
+  const revision = after.interpretation === 'moved'
+    ? before.interpretation === 'moved'
+      ? ['نفس الراي، بدليل جديد', 'بقيت على فكرة اللي المبلغ تبدّل في الجدول. قبل كانت تخميمة، وبعد كشف البنك ولّت مسنودة بدليل.']
+      : ['الدليل بدّل وجهة نظرك', 'بدّلت التفسير بعد ما شفت كشف البنك. في الواقع، اسأل روحك شنوّة المعلومة اللي كان تظهر تنجّم تبدّل رايك.']
+    : after.interpretation === 'missing'
+      ? ['الراي ما مشاش مع الكشف', 'آخر راي قلتو هو اللي الفلوس خرجت. ورقة البنك تورّي العكس. قبل ما تثبّت رايك، اسأل روحك: الورقة هاذي تأكّد كلامي وإلّا تنقضو؟']
+      : ['خلّيت السؤال مفتوح', 'بعد الكشف مازلت ما حسمتش. مكان الفلوس ولى واضح، أمّا علاش الناس تصرّفت هكّا بقى مفتوح. تنجّم تحسم السؤال اللّول وتستنّى في الثاني.'];
+  const action = actions.rumor === 'share' && after.interpretation === 'moved'
+    ? ['تثبّتّ من الفلوس، واستعجلت في الكلام', 'في الحساب استنّيت تشوف وثيقة. مع أمينة قبلت تعاود جملة من فويس. في المرّة الجاية، عطِ للكلام على الناس نفس الوقت اللي عطيتو للأرقام.']
+    : actions.final === 'post'
+      ? ['اخترت تتحرّك بسرعة', 'بعثت الزوز نسخ للغروب باش توصل للناس بسرعة. التصويرة دارت وحدها. قبل ما تبعث دليل، خمّم كان ينجم يتفهم وحدو من غيرك.']
+      : ['فرّقت بين التصحيح والكلام اللي يدور', 'كان يلزمك تصلّح الحكاية حتى والنيّات مازالت غامضة. في الواقع تنجّم تطلب تصحيح حاجة ثابتة وتخلّي التخميمة على الناس مفتوحة.'];
+  if (actions.rumor === 'share' && after.interpretation !== 'moved' && actions.final !== 'post') {
+    return [sameSign, revision, ['الكلام دار قبل التثبّت', 'خلّيت أمينة تعاود الفويس، وبعد اخترت طريق آخر باش يتصلّح التقرير. السؤال اللي ينفعك: شنوّة كان يلزم تعرف قبل ما توافق تعاود الجملة؟']];
+  }
+  return [sameSign, revision, action];
+}
+
 export function summarize(state) {
   const [opening, before, after] = state.judgments;
   const added = after.evidence.filter(id => !before.evidence.includes(id));
@@ -46,6 +68,7 @@ export function summarize(state) {
 
   return {
     opening, before, after, added, update,
+    patterns: recognizePattern(opening, before, after, state.actions),
     openingFeedback: firstRead[opening.interpretation],
     leadFeedback: followUp[state.actions.lead],
     rumorFeedback: rumorFeedback[state.actions.rumor],

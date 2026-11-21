@@ -1,5 +1,6 @@
 // Four bars per loop. Negative melody offsets are rests.
 const cues = {
+  title: { tonic: 45, beat: .84, bass: [0, 3, -2, -5], color: 'keys', melody: [24, -1, 19, 15, 23, -1, 19, -1, 24, 26, 27, -1, 19, 17, 15, -1] },
   street: { tonic: 50, beat: .78, bass: [0, -3, -5, -2], color: 'keys', melody: [12, -1, 15, 19, 17, -1, 15, 12, 10, 12, -1, 8, 10, -1, 14, -1] },
   room: { tonic: 57, beat: .74, bass: [0, -2, -5, -4], color: 'pluck', melody: [12, 15, -1, 19, 17, 15, -1, 12, 10, -1, 12, 15, 14, -1, 11, -1] },
   office: { tonic: 52, beat: .60, bass: [0, -1, -3, -5], color: 'pluck', percussion: [1, 3], melody: [19, -1, 15, 14, -1, 11, 14, -1, 15, 19, -1, 17, 12, -1, 10, -1] },
