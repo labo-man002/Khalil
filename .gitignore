@@ -1,9 +1,0 @@
-node_modules/
-dist/
-.astro/
-/work/
-.env
-.env.*
-.DS_Store
-.wrangler/
-/public/hidden-layers-of-truth/
