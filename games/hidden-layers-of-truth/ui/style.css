@@ -229,6 +229,8 @@ blockquote { margin:0 0 .6rem; font-size:1.3rem; color:var(--amber) }
 
 @media (max-width: 480px) {
   .top { display:grid; gap:.35rem }
+  .playing .top .toolbar { gap:.3rem }
+  .playing .top button { padding-inline:.42rem; font-size:.85rem }
 }
 @media (max-width: 370px) {
   .confidence { flex-wrap:wrap; gap:.1rem .55rem }

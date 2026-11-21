@@ -193,6 +193,7 @@ try {
     const play = await page.locator('.play-layout').boundingBox();
     const header = await page.locator('.playing .top').boundingBox();
     assert(Math.abs(play.y - (header.y + header.height)) <= 1 && Math.abs(play.y + play.height - variant.viewport.height) <= 1);
+    if (variant.name === 'narrow') assert(header.height < 105, 'the narrow toolbar fits in one row');
     const panelBox = await page.locator('.play-panel').boundingBox();
     assert(panelBox.y >= header.y + header.height && panelBox.y + panelBox.height <= variant.viewport.height);
     assert.equal(await page.locator('.stage canvas').evaluate(canvas => getComputedStyle(canvas).objectFit), 'contain');
