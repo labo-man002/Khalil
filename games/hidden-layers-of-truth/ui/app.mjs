@@ -168,7 +168,7 @@ function dialogue(beat, closing) {
   const [name, , , , role, accent] = cast[beat.speaker];
   const byMessage = state.sceneId === 'intro' && state.hotspot === 'inbox' && beat.speaker === 'lina';
   return `<section class="story-panel dialogue" aria-labelledby="scene-title" style="--speaker-accent:${accent}">
-    <div class="dialogue-copy">
+    <div class="dialogue-copy" tabindex="0" role="region" aria-labelledby="scene-title">
     <div class="speaker" data-speaker="${beat.speaker}">
       <canvas width="48" height="48" aria-hidden="true"></canvas>
       <div><h1 tabindex="-1" id="scene-title">${name}</h1><p>${byMessage ? 'ميساج من لينا' : role}</p></div>
@@ -332,7 +332,9 @@ function render(focus, from) {
     announcement.textContent = '';
     setSceneMusic(view === 'splash' ? 'title' : 'street');
     app.innerHTML = view === 'splash' ? splash() : gameHeader() + chapterMenu();
-    drawScene(app.querySelector('canvas'), view === 'splash' ? 'street' : 'room', view);
+    const cover = app.querySelector('canvas');
+    if (view === 'splash') drawScene(cover, 'street', 'splash', undefined, 205);
+    else drawScene(cover, 'room', 'chapters');
     const target = focus ?? (view === 'splash' ? '[data-action="enter"]' : '.chapter-actions .primary');
     app.querySelector(target)?.focus({ preventScroll: true });
     return;
@@ -493,6 +495,14 @@ document.addEventListener('click', event => {
       break;
     case 'leave': dispatch({ type: 'leave' }); break;
   }
+});
+
+document.addEventListener('keydown', event => {
+  if (!['PageDown', 'PageUp'].includes(event.key) || !event.target.matches('.dialogue-actions button')) return;
+  const copy = event.target.closest('.dialogue').querySelector('.dialogue-copy');
+  if (copy.scrollHeight <= copy.clientHeight) return;
+  copy.scrollBy({ top: (event.key === 'PageDown' ? 1 : -1) * copy.clientHeight });
+  event.preventDefault();
 });
 
 document.addEventListener('submit', event => {

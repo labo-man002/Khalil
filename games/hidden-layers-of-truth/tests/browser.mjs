@@ -36,7 +36,8 @@ try {
   for (const variant of [
     { name: 'desktop', viewport: { width: 1366, height: 1024 }, ending: 'correct', lead: 'records', title: 'قدّام نفس الناس' },
     { name: 'mobile', viewport: { width: 390, height: 844 }, ending: 'internal', lead: 'adam', title: 'التقرير عند اللجنة' },
-    { name: 'narrow', viewport: { width: 320, height: 740 }, ending: 'post', lead: 'witnesses', title: 'سبق الكلام' },
+    { name: 'narrow', viewport: { width: 320, height: 568 }, ending: 'post', lead: 'witnesses', title: 'سبق الكلام' },
+    { name: 'landscape', viewport: { width: 740, height: 320 }, ending: 'correct', lead: 'youssef', title: 'قدّام نفس الناس' },
   ]) {
     const mobile = variant.name !== 'desktop';
     const page = await browser.newPage({ viewport: variant.viewport, hasTouch: mobile, isMobile: mobile, reducedMotion: 'reduce' });
@@ -124,6 +125,14 @@ try {
     assert.equal(await page.locator('.splash h1').innerText(), 'بين السطور');
     assert.equal(await page.locator('.splash-series').innerText(), 'Hidden Layers of Truth');
     assert.equal(await page.locator('.splash-menu').evaluate(el => getComputedStyle(el).animationName), 'none');
+    const splashBox = await page.locator('.splash').boundingBox();
+    assert.equal(splashBox.width, variant.viewport.width);
+    assert.equal(splashBox.height, variant.viewport.height);
+    for (const control of [action('enter'), action('sound')]) {
+      const rect = await control.boundingBox();
+      assert(rect.x >= 0 && rect.y >= 0 && rect.y + rect.height <= splashBox.height);
+      assert(rect.x + rect.width <= splashBox.width && rect.height >= 44);
+    }
     await capture('title');
     const quietStart = variant.name === 'narrow';
     const music = action('sound');
@@ -181,6 +190,13 @@ try {
       });
     }
     await capture('intro');
+    const play = await page.locator('.play-layout').boundingBox();
+    const header = await page.locator('.playing .top').boundingBox();
+    assert(Math.abs(play.y - (header.y + header.height)) <= 1 && Math.abs(play.y + play.height - variant.viewport.height) <= 1);
+    if (variant.name === 'narrow') assert(header.height < 105, 'the narrow toolbar fits in one row');
+    const panelBox = await page.locator('.play-panel').boundingBox();
+    assert(panelBox.y >= header.y + header.height && panelBox.y + panelBox.height <= variant.viewport.height);
+    assert.equal(await page.locator('.stage canvas').evaluate(canvas => getComputedStyle(canvas).objectFit), 'contain');
     assert.equal(await action('leave').isDisabled(), true);
     assert.equal(await page.locator('[data-required=true]').count(), 3);
     await assertHotspotsSeparate();
@@ -206,6 +222,14 @@ try {
       await inspect('laptop');
     }
     await click(page.locator('[data-id="phone"]'));
+    const copy = await page.locator('.dialogue-copy').boundingBox();
+    const speech = await page.locator('.dialogue .speech').boundingBox();
+    assert(speech.y >= 0 && speech.y + 24 <= copy.y + copy.height,
+      'the first line of dialogue is visible without scrolling');
+    if (await page.locator('.dialogue-copy').evaluate(el => el.scrollHeight > el.clientHeight)) {
+      await page.keyboard.press('PageDown');
+      await page.waitForFunction(() => document.querySelector('.dialogue-copy').scrollTop > 0);
+    }
     if (!mobile) await hear(53);
     await drain();
     assert.equal(await page.locator('[data-id="inbox"]').evaluate(el => el === document.activeElement), true);
