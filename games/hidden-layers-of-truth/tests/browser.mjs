@@ -342,6 +342,9 @@ try {
     await drain();
     assert.equal(await page.locator('#scene-title').textContent(), variant.title);
     const recap = page.locator('.case-recap').first();
+    assert.match(await page.locator('.finale-hero .label').innerText(), /الحكاية/);
+    assert.equal(await recap.locator('dl > div').first().isVisible(), false);
+    await click(action('ending-skip'));
     assert.match(await recap.innerText(), /2,400. دينار/);
     assert.match(await recap.innerText(), /قعدوا في حساب الجمعيّة/);
     assert.match(await recap.innerText(), /ما تأكّدناش/);
@@ -352,23 +355,29 @@ try {
     await capture('ending');
     if (!mobile) await page.emulateMedia({ reducedMotion: 'no-preference' });
     await click(endingTab('insights'));
-    const cards = page.locator('.insight-cards article');
-    if (!mobile) {
-      assert.equal(await action('ending-skip').isVisible(), true);
-      assert.equal(await cards.first().isVisible(), false);
-      await cards.first().waitFor({ state: 'visible' });
-      assert.equal(await cards.nth(1).isVisible(), false);
-      await cards.nth(1).waitFor({ state: 'visible' });
-      assert.equal(await cards.last().isVisible(), false);
-      await click(action('ending-skip'));
-      assert.equal(await cards.last().isVisible(), true);
-      assert.equal(await action('ending-skip').isVisible(), false);
-    } else {
-      assert.equal(await cards.last().isVisible(), true);
-      assert.equal(await action('ending-skip').isVisible(), false);
-    }
     assert.equal(await endingTab('insights').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#reflection-title').evaluate(el => el === document.activeElement), true);
+    const cards = page.locator('.insight-cards article');
+    const nextInsight = action('ending-next');
+    assert.equal(await cards.first().isVisible(), false);
+    if (!mobile) {
+      await page.waitForTimeout(1100);
+      assert.equal(await page.locator('#ending-insights .confidence-trail').isVisible(), false);
+    }
+    await click(nextInsight); // Confidence totals
+    await click(nextInsight); // Confidence explanation
+    await click(nextInsight); // First insight card
+    assert.equal(await cards.first().isVisible(), true);
+    assert.equal(await cards.nth(1).isVisible(), false);
+    await click(endingTab('case'));
+    await click(endingTab('insights'));
+    assert.equal(await cards.nth(1).isVisible(), false, 'revisiting does not move the reading position');
+    await click(nextInsight);
+    assert.equal(await cards.nth(1).isVisible(), true);
+    assert.equal(await cards.last().isVisible(), false);
+    await click(action('ending-skip'));
+    assert.equal(await cards.last().isVisible(), true);
+    assert.equal(await nextInsight.isVisible(), false);
     assert.equal(await recap.isVisible(), false);
     assert.equal(await page.locator('.insight-cards article').count(), 3);
     assert.match(await page.locator('.insight-cards').innerText(), /قرا وما جاوبش|ما جاوبكش/);
@@ -377,12 +386,12 @@ try {
     await click(page.locator('.decision-recap summary'));
     assert.equal(await page.locator('.decision-recap dd').count(), 7);
     await click(endingTab('verse'));
-    if (!mobile) {
-      await page.emulateMedia({ reducedMotion: 'reduce' });
-      await page.locator('.lesson blockquote').waitFor({ state: 'visible' });
-      assert.equal(await action('ending-skip').isVisible(), false);
-    }
+    if (!mobile) await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await page.locator('.lesson blockquote').isVisible(), true);
     assert.equal(await page.locator('.finale-scroll').evaluate(el => el.scrollTop), 0);
+    assert.equal(await page.locator('.mirror-messages').isVisible(), false);
+    await click(action('ending-next'));
+    assert.equal(await action('ending-skip').isVisible(), false);
     assert.equal(await page.locator('.mirror-messages article').count(), 2);
     assert.match(await page.locator('.mirror-messages').innerText(), /طمّنّي عليك/);
     assert.match(await page.locator('.lesson blockquote').innerText(), /يَا أَيُّهَا.*وَلَا تَجَسَّسُوا.*تَوَّابٌ رَحِيمٌ/);
