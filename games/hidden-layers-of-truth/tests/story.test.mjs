@@ -126,8 +126,12 @@ test('save replay preserves the exact scene and history, and recovers from old o
   assert.equal(saveStory(denied, []), false);
   assert.equal(loadStory(denied).state, null);
   assert.deepEqual(loadSettings(denied), defaults);
-  assert(saveSettings(storage, { ...defaults, music: true }));
-  assert.deepEqual(loadSettings(storage), { ...defaults, music: true });
+  storage.raw = null;
+  assert.equal(loadSettings(storage).music, true);
+  storage.raw = '{"volume":36}';
+  assert.equal(loadSettings(storage).music, true);
+  assert(saveSettings(storage, { ...defaults, music: false }));
+  assert.deepEqual(loadSettings(storage), { ...defaults, music: false });
 });
 
 test('reflection quotes the same run and differentiates evidence-supported retention and revision', () => {

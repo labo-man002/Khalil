@@ -5,7 +5,7 @@ const SETTINGS_KEY = 'hidden-layers:settings';
 const LEGACY_KEY = 'hlt-darja-v1';
 const VERSION = 1;
 
-export const defaults = { music: false, volume: 55, reducedMotion: false, instantText: false };
+export const defaults = { music: true, volume: 55, reducedMotion: false, instantText: false };
 
 export function loadStory(storage) {
   try {
@@ -42,9 +42,9 @@ export function saveStory(storage, events) {
 
 export function loadSettings(storage) {
   try {
-    const settings = JSON.parse(storage.getItem(SETTINGS_KEY));
+    const settings = JSON.parse(storage.getItem(SETTINGS_KEY)) ?? {};
     return {
-      music: settings.music === true,
+      music: typeof settings.music === 'boolean' ? settings.music : defaults.music,
       volume: Number.isInteger(settings.volume) && settings.volume >= 0 && settings.volume <= 100
         ? settings.volume : defaults.volume,
       reducedMotion: settings.reducedMotion === true,
