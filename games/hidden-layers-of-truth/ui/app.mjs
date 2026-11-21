@@ -22,6 +22,7 @@ let typing;
 let previousFocus;
 let walkFrame;
 let sceneEntered = 0;
+let endingTimer;
 let recitation;
 
 const confidenceLevels = [
@@ -38,7 +39,11 @@ const percent = number => `<bdi dir="ltr">${number}%</bdi>`;
 
 function updateMotion() {
   document.documentElement.dataset.still = settings.reducedMotion || systemMotion.matches;
-  if (document.documentElement.dataset.still === 'true') finishTyping();
+  if (document.documentElement.dataset.still === 'true') {
+    finishTyping();
+    const page = app.querySelector('.finale-page:not([hidden])');
+    if (page) skipEndingReveal(page);
+  }
 }
 
 systemMotion.addEventListener('change', updateMotion);
@@ -316,32 +321,33 @@ function finish() {
     </header>
     <nav class="finale-nav" aria-label="أقسام النهاية">${endingPages.map(([id, label], index) =>
       `<button data-action="ending-page" data-id="${id}" aria-controls="ending-${id}" aria-pressed="${index === 0}">${label}</button>`).join('')}</nav>
+    <div class="finale-skip" hidden><button data-action="ending-skip">ورّيني الكلّ</button></div>
     <div class="finale-scroll">
       <section class="finale-page case-recap" id="ending-case" aria-labelledby="case-title">
         <h2 id="case-title" tabindex="-1">شنوّة تبدّل باختيارك؟</h2>
-        <p class="personal-highlight">${outcome.consequence}</p>
-        <p>${summary.askedWitness
+        <p class="personal-highlight" data-ending-step>${outcome.consequence}</p>
+        <p data-ending-step>${summary.askedWitness
           ? state.actions.final === 'correct'
             ? 'آدم شهد باللي يعرفو، وحكاية خوّه قعدت بيناتكم.'
             : 'آدم بعثلك كلامو مكتوب. خلّى لك القرار وين تستعملو.'
           : 'لينا شدّت التصحيح. آدم سلّم عليك من بعيد.'}</p>
-        <h3>شنوّة صار بالحقّ؟</h3>
-        <dl>${caseRecap.map(([question, answer]) => `<div><dt>${question}</dt><dd>${answer}</dd></div>`).join('')}</dl>
-        <button class="primary" data-action="ending-page" data-id="insights">نشوف أثر اختياراتي <span aria-hidden="true">←</span></button>
+        <h3 data-ending-step>شنوّة صار بالحقّ؟</h3>
+        <dl>${caseRecap.map(([question, answer]) => `<div data-ending-step><dt>${question}</dt><dd>${answer}</dd></div>`).join('')}</dl>
+        <button class="primary" data-ending-step data-action="ending-page" data-id="insights">نشوف أثر اختياراتي <span aria-hidden="true">←</span></button>
       </section>
       <section class="finale-page reflection" id="ending-insights" aria-labelledby="reflection-title" hidden>
         <h2 id="reflection-title" tabindex="-1">كيفاش خمّمت في الجولة هاذي؟</h2>
-        <p class="personal-highlight">${summary.takeaway}</p>
-        <ol class="confidence-trail" aria-label="الثقة اللي سجّلتها">${summary.confidenceTrail.map(([label, score]) =>
+        <p class="personal-highlight" data-ending-step>${summary.takeaway}</p>
+        <ol data-ending-step class="confidence-trail" aria-label="الثقة اللي سجّلتها">${summary.confidenceTrail.map(([label, score]) =>
           `<li><span>${label}</span><strong>${percent(score)}</strong></li>`).join('')}</ol>
-        <p class="hint confidence-reading">${summary.confidenceReading}</p>
+        <p class="hint confidence-reading" data-ending-step>${summary.confidenceReading}</p>
         <div class="insight-cards">
-          ${summary.patterns.map(([label, example], index) => `<article>
+          ${summary.patterns.map(([label, example], index) => `<article data-ending-step>
             <p class="label">${reasons[index][0]}</p><h3>${label}</h3>
             <p class="insight-choice">${reasons[index][1]}</p><p>${example}</p>
           </article>`).join('')}
         </div>
-        <details class="decision-recap">
+        <details class="decision-recap" data-ending-step>
           <summary>نرجع لاختياراتي بالتفصيل</summary>
           <dl>
             <div><dt>سكوت آدم · ${interpretationLabel(summary.opening)}</dt><dd>${summary.openingFeedback}</dd></div>
@@ -352,12 +358,12 @@ function finish() {
             ${summary.actionTrail.map(([label, explanation]) => `<div><dt>${label}</dt><dd>${explanation}</dd></div>`).join('')}
           </dl>
         </details>
-        <button data-action="ending-page" data-id="verse">نمشي للآية <span aria-hidden="true">←</span></button>
+        <button data-ending-step data-action="ending-page" data-id="verse">نمشي للآية <span aria-hidden="true">←</span></button>
       </section>
       <section class="finale-page lesson" id="ending-verse" aria-labelledby="lesson-title" hidden>
         <h2 id="lesson-title" tabindex="-1">قبل ما تسكّر الحكاية</h2>
-        ${verse()}
-        ${messageMirror(summary.opening)}
+        <div data-ending-step>${verse()}</div>
+        <div data-ending-step>${messageMirror(summary.opening)}</div>
       </section>
     </div>
     <footer class="finale-footer"><button data-action="start">نعاود نلعب</button><button data-action="journal">نفتح الدفتر</button>
@@ -371,9 +377,45 @@ function openEndingPage(id) {
   stopRecitation();
   app.querySelectorAll('.finale-page').forEach(section => { section.hidden = section !== page; });
   app.querySelectorAll('.finale-nav button').forEach(button => button.setAttribute('aria-pressed', button.dataset.id === id));
-  const scroll = page.parentElement;
-  scroll.scrollTop = 0;
+  page.parentElement.scrollTop = 0;
+  revealEndingPage(page);
   page.querySelector('h2').focus({ preventScroll: true });
+}
+
+function setEndingSkip(page, visible) {
+  const skip = app.querySelector('.finale-skip');
+  if (!visible && skip.contains(document.activeElement)) {
+    page.querySelector('h2').focus({ preventScroll: true });
+  }
+  skip.hidden = !visible;
+}
+
+function skipEndingReveal(page) {
+  clearTimeout(endingTimer);
+  page.querySelectorAll('[data-ending-step]').forEach(step => {
+    step.classList.remove('ending-pending', 'ending-arriving');
+  });
+  setEndingSkip(page, false);
+}
+
+function revealEndingPage(page) {
+  clearTimeout(endingTimer);
+  if (document.documentElement.dataset.still === 'true') {
+    skipEndingReveal(page);
+    return;
+  }
+  const steps = [...page.querySelectorAll('.ending-pending')];
+  setEndingSkip(page, steps.length > 0);
+  function next() {
+    const step = steps.shift();
+    if (!step) {
+      setEndingSkip(page, false);
+      return;
+    }
+    step.classList.replace('ending-pending', 'ending-arriving');
+    endingTimer = setTimeout(next, step.matches('article') ? 950 : 570);
+  }
+  if (steps.length) endingTimer = setTimeout(next, 260);
 }
 
 function position(node, current) {
@@ -449,6 +491,7 @@ function animateStage(canvas, node, beat, from, replayCup = false) {
 }
 
 function render(focus, from) {
+  clearTimeout(endingTimer);
   stopRecitation();
   setWindowRain(view === 'game' && state.hotspot === 'window');
   finishTyping();
@@ -475,6 +518,8 @@ function render(focus, from) {
     app.innerHTML = gameHeader() + finish();
     announcement.textContent = '';
     drawScene(app.querySelector('.finale canvas'), 'office', 'end');
+    app.querySelectorAll('[data-ending-step]').forEach(step => step.classList.add('ending-pending'));
+    revealEndingPage(app.querySelector('#ending-case'));
     app.querySelector('#scene-title').focus({ preventScroll: true });
     return;
   }
@@ -658,6 +703,7 @@ document.addEventListener('click', event => {
     case 'journal': journal(); break;
     case 'source': source(); break;
     case 'ending-page': openEndingPage(control.dataset.id); break;
+    case 'ending-skip': skipEndingReveal(app.querySelector('.finale-page:not([hidden])')); break;
     case 'recite': void playRecitation(control); break;
     case 'sip':
       cancelAnimationFrame(walkFrame);
