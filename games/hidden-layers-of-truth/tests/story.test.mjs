@@ -168,3 +168,19 @@ test('reflection reports the player’s actual pattern even when a revision cont
   assert.equal(contrary.patterns[1][0], 'الراي ما مشاش مع الكشف');
   assert.equal(contrary.patterns[2][0], 'الكلام دار قبل التثبّت');
 });
+
+test('ending reflects the confidence trajectory and exact choices across the run', () => {
+  const a = run({ meeting: 'wait', lead: 'adam', rumor: 'hold', adamReply: 'cut', mirror: 'space', revision: 'moved', final: 'internal' }).state;
+  const b = run({ meeting: 'clarify', lead: 'records', rumor: 'check', adamReply: 'witness', mirror: 'listen', revision: 'moved', final: 'correct' }).state;
+  const waited = summarize(a);
+  const asked = summarize(b);
+  assert.deepEqual(waited.confidenceTrail.map(([, confidence]) => confidence), [33, 33, 82]);
+  assert.match(waited.confidenceReading, /طلعت بـ49 نقطة/);
+  assert.notEqual(waited.takeaway, asked.takeaway);
+  assert.notEqual(waited.leadFeedback, asked.leadFeedback);
+  assert.notEqual(waited.rumorFeedback, asked.rumorFeedback);
+  assert.equal(waited.actionTrail.length, 3);
+  waited.actionTrail.forEach((entry, i) => assert.notDeepEqual(entry, asked.actionTrail[i]));
+  const lower = { ...a, judgments: a.judgments.map((entry, i) => i === 2 ? { ...entry, confidence: 10 } : entry) };
+  assert.match(summarize(lower).confidenceReading, /هبطت بـ23 نقطة/);
+});

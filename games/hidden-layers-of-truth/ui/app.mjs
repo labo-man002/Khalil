@@ -1,9 +1,9 @@
 import './style.css';
-import { chapter, decisionStakes, decisionTradeoffs, exhibits, locations, messagesOnPhone, musicCue, sceneTransitions } from '../content/chapter.mjs';
+import { chapter, characterIntroductions, decisionStakes, decisionTradeoffs, exhibits, locations, messagesOnPhone, musicCue, sceneTransitions } from '../content/chapter.mjs';
 import { evidence, evidenceTypes } from '../content/evidence.mjs';
 import { currentBeats, newStory, transition } from '../engine/story.mjs';
 import { loadSettings, loadStory, saveSettings, saveStory } from '../engine/save.mjs';
-import { chime, phoneBuzz, setAudio, setSceneMusic } from '../render/audio.mjs';
+import { chime, phoneBuzz, sceneSound, setAudio, setRecitationActive, setSceneMusic, setWindowRain } from '../render/audio.mjs';
 import { cast, drawPortrait, drawScene } from '../render/art.mjs';
 import { caseRecap, interpretationLabel, outcomes, summarize } from '../reflection/summary.mjs';
 
@@ -21,6 +21,12 @@ let view = 'splash';
 let typing;
 let previousFocus;
 let walkFrame;
+let recitation;
+
+const confidenceLevels = [
+  [0, 'ما عنديش ثقة في التفسير هذا'], [25, 'ثقتي ضعيفة'], [50, 'نصّ نصّ'],
+  [75, 'شبه متأكّد'], [100, 'متأكّد بالكلّ'],
+];
 
 const messages = {
   invalid: 'الحفظ ما تقراش. تنجّم تبدأ من جديد.',
@@ -45,7 +51,7 @@ function dispatch(event, focus) {
   state = next;
   events.push(event);
   notice = saveStory(storage, events) ? null : 'unsaved';
-  render(focus, event.type === 'inspect' || (previous.sceneId === 'opening' && next.sceneId === 'intro') ? previous : null);
+  render(focus, previous);
 }
 
 function start(resume) {
@@ -60,7 +66,10 @@ function start(resume) {
 }
 
 async function syncSound() {
-  if (await setAudio(settings)) return;
+  if (await setAudio(settings)) {
+    setWindowRain(view === 'game' && state.hotspot === 'window');
+    return;
+  }
   settings = { ...settings, music: false };
   saveSettings(storage, settings);
   updateSoundButton();
@@ -164,6 +173,10 @@ function exhibit() {
     `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl></aside>`;
 }
 
+function introduction(id) {
+  return `<p class="character-intro"><strong>${cast[id][0]}</strong> · ${characterIntroductions[id]}</p>`;
+}
+
 function phoneScreen(beat) {
   if (state.sceneId !== 'intro') return '';
   const first = state.beatIndex === 0;
@@ -171,12 +184,20 @@ function phoneScreen(beat) {
     const content = first
       ? `<p class="chat-bubble sent">${messagesOnPhone.adam}</p><p class="chat-status">قراه · <bdi>٢١:١٤</bdi></p>`
       : '<figure class="phone-story"><canvas width="480" height="224" aria-hidden="true"></canvas><figcaption>ستوري آدم مع يوسف في قهوة سي الطاهر</figcaption></figure>';
-    return `<aside class="phone-screen"><h2>آدم</h2>${content}</aside>`;
+    return `<aside class="phone-screen"><h2>آدم</h2>${content}${introduction(first ? 'adam' : 'youssef')}</aside>`;
   }
   if (state.hotspot !== 'inbox') return '';
   return `<aside class="phone-screen"><h2>لينا <bdi class="chat-time">٢٣:٥١</bdi></h2>
-    ${first ? `<div class="chat-bubble incoming">${storyLine(beat.text)}</div>` : `<p class="chat-bubble sent">علاش؟</p>
+    ${first ? `<div class="chat-bubble incoming">${storyLine(beat.text)}</div>${introduction('lina')}` : `<p class="chat-bubble sent">علاش؟</p>
     <div class="chat-typing" aria-hidden="true"><i></i><i></i><i></i></div>`}</aside>`;
+}
+
+function firstSpeakerCard(beat) {
+  const { sceneId, hotspot, beatIndex } = state;
+  const first = (sceneId === 'street' && hotspot === 'amina' && beatIndex === 0)
+    || (sceneId === 'home' && hotspot === 'maryam' && beatIndex === 0)
+    || (sceneId === 'leads' && hotspot === 'witnesses');
+  return first ? introduction(beat.speaker) : '';
 }
 
 function dialogue(beat, closing) {
@@ -190,9 +211,13 @@ function dialogue(beat, closing) {
     </div>
     ${phoneScreen(beat)}
     ${byMessage ? '' : storyLine(beat.text)}
+    ${state.sceneId === 'morning' && state.beatIndex === 0
+      ? '<p class="room-chatter">من آخر القاعة · «سيّب كرسي لهنا، بالله.»</p>' : ''}
+    ${firstSpeakerCard(beat)}
     ${exhibit()}
     </div>
-    <footer class="dialogue-actions"><button class="primary" data-action="advance">${closing ? 'نسكّر' : state.hotspot === 'phone' ? 'نشوف الستوري' : 'نكمل'} <span aria-hidden="true">←</span></button></footer>
+    <footer class="dialogue-actions">${state.hotspot === 'cup'
+      ? '<button data-action="sip">رشفة أخرى</button>' : ''}<button class="primary" data-action="advance">${closing ? 'نسكّر' : state.hotspot === 'phone' ? 'نشوف الستوري' : 'نكمل'} <span aria-hidden="true">←</span></button></footer>
   </section>`;
 }
 
@@ -233,14 +258,18 @@ function decision(node) {
     ${before ? `<p class="earlier"><strong>اللي خمّمتو قبل الكشف</strong> ${interpretationLabel(before)} · ${percent(before.confidence)}</p>` : ''}
     <h1 id="scene-title" tabindex="-1">${node.prompt}</h1>
     ${decisionStakes[state.sceneId] ? `<p class="stakes">${decisionStakes[state.sceneId]}</p>` : ''}
-    <form id="decision"><fieldset><legend class="sr-only">اختيارك</legend>
+    <form id="decision"><fieldset><legend class="${node.proposition ? 'step-title' : 'sr-only'}">${node.proposition ? '١. اختار تفسيرك' : 'اختيارك'}</legend>
       ${node.options.map(choice => `<label class="choice"><input type="radio" name="choice" value="${choice.id}" required><span>${choice.label}${decisionTradeoffs[state.sceneId]?.[choice.id]
         ? `<small class="tradeoff">${decisionTradeoffs[state.sceneId][choice.id]}</small>` : ''}</span></label>`).join('')}
     </fieldset>
-    ${node.proposition ? `<div class="confidence"><label for="confidence">قدّاش واثق في رايك؟</label>
-      <input type="range" name="confidence" id="confidence" min="0" max="100" value="50" dir="ltr">
-      <output for="confidence" dir="ltr">50%</output></div>` : ''}
-    <button type="submit" class="primary next">نثبّت ونكمّل <span aria-hidden="true">←</span></button></form>
+    ${node.proposition ? `<fieldset class="certainty" aria-describedby="confidence-hint">
+      <legend class="step-title">٢. قدّاش إنت واثق في تفسيرك؟</legend>
+      <p id="confidence-hint">اختار نسبة باش تكمّل. ${state.sceneId === 'silence' ? 'قدّاش التفسير هذا يقنعك توّة؟' : 'باش تقارن ثقتك قبل كشف البنك وبعدو.'}</p>
+      <div class="certainty-options">${confidenceLevels.map(([value, label]) => `<label title="${label}">
+        <input type="radio" name="confidence" value="${value}" required aria-label="${value}%، ${label}">
+        <bdi>${value}%</bdi></label>`).join('')}</div>
+    </fieldset>` : ''}
+    <button type="submit" class="primary next">${node.proposition ? 'نسجّل رايي وثقتي' : 'نثبّت ونكمّل'} <span aria-hidden="true">←</span></button></form>
   </section>`;
 }
 
@@ -271,6 +300,8 @@ function finish() {
   return `<section class="story-panel ending">
     <p class="label">نهاية الفصل</p>
     <h1 id="scene-title" tabindex="-1">${outcome.title}</h1>
+    <p class="personal-highlight">${summary.takeaway}</p>
+    <div class="ending-links"><button data-action="ending-insights">نشوف اختياراتي والثقة متاعي</button><button data-action="ending-verse">نسمع الآية</button></div>
     <section class="case-recap" aria-labelledby="case-title">
       <h2 id="case-title">شنوّة صار بالحقّ؟</h2>
       <dl>${caseRecap.map(([question, answer]) => `<div><dt>${question}</dt><dd>${answer}</dd></div>`).join('')}</dl>
@@ -286,8 +317,16 @@ function finish() {
       ${state.actions.lead === 'records' && state.actions.final === 'correct' ? 'لينا زادت في الورقة وقتاش تبدّل الملفّ.' : ''}
       ${summary.passedRumor ? 'أمينة قالتلك اللي الكلام اللي عاودتو مازال يدور.' : ''}</p>
     </section>
+    ${messageMirror(summary.opening)}
+    <section class="lesson" aria-labelledby="lesson-title">
+      <h2 id="lesson-title" tabindex="-1">قبل ما تسكّر الحكاية</h2>
+      ${verse()}
+    </section>
     <section class="reflection" aria-labelledby="reflection-title">
-      <h2 id="reflection-title">شنوّة تنجّم تتعلّم من اختياراتك؟</h2>
+      <h2 id="reflection-title" tabindex="-1">حكايتك إنت</h2>
+      <ol class="confidence-trail" aria-label="الثقة اللي سجّلتها">${summary.confidenceTrail.map(([label, score]) =>
+        `<li><span>${label}</span><strong>${percent(score)}</strong></li>`).join('')}</ol>
+      <p class="hint confidence-reading">${summary.confidenceReading}</p>
       <div class="feedback">
         <h3>كي آدم ما جاوبكش</h3>
         <p class="hint">${interpretationLabel(summary.opening)} · ${percent(summary.opening.confidence)}</p>
@@ -304,17 +343,15 @@ function finish() {
         <h3>كي أمينة جابتلك الكلام</h3>
         <p>${summary.rumorFeedback}</p>
       </div>
+      <details class="decision-recap">
+        <summary>شوف أثر اختياراتك الأخرى</summary>
+        <dl>${summary.actionTrail.map(([label, explanation]) => `<div><dt>${label}</dt><dd>${explanation}</dd></div>`).join('')}</dl>
+      </details>
       <p class="hint">الكلام هذا على اختياراتك في الحكاية برك.</p>
     </section>
     <section class="pattern-recap" aria-labelledby="pattern-title">
       <h2 id="pattern-title">شنوّة تكرّر في اختياراتك؟</h2>
       <dl>${summary.patterns.map(([label, example]) => `<div><dt>${label}</dt><dd>${example}</dd></div>`).join('')}</dl>
-    </section>
-    ${messageMirror(summary.opening)}
-    <section class="lesson" aria-labelledby="lesson-title">
-      <h2 id="lesson-title">العبرة من الحكاية</h2>
-      ${verse()}
-      <p>آدم قرا وما جاوبش، وسامي عمل نفس الشي مع مريم. في المرّتين شفنا نفس الحركة، والأسباب كانت مختلفة. تنجّم تقول «ما جاوبنيش» وتواجه المشكلة، وتستنّى قبل ما تقول «تعمّد يضرّني». وزادة كي يتصلّح غلطة في التقرير، ردّ بالك الكلام على شكون غلط ما يدورش قبل التثبّت.</p>
     </section>
     <div class="toolbar"><button class="primary" data-action="start">نعاود نلعب</button>
       <button data-action="journal">نفتح الدفتر</button><button data-action="source">على الآية</button></div>
@@ -326,22 +363,35 @@ function position(node, current) {
   return spot ? Math.round(spot.x * 4.8) : node.place === 'room' ? 249 : 145;
 }
 
-function animateStage(canvas, node, beat, from) {
+function animateStage(canvas, node, beat, from, replayCup = false) {
   const to = position(node, state);
+  const interaction = state.hotspot;
+  const previous = from?.sceneId === 'opening' && state.sceneId === 'intro' ? 45
+    : from && from.sceneId === state.sceneId ? position(node, from)
+    : from && chapter[from.sceneId].place !== node.place ? 44 : to;
+  const distance = Math.abs(to - previous);
+  const walkDuration = distance ? Math.min(1250, 300 + distance * 4) : 0;
+  const startsScene = from && from.sceneId !== state.sceneId;
+  const enteringCup = interaction === 'cup' && (replayCup || from?.hotspot !== 'cup');
+  const still = document.documentElement.dataset.still === 'true';
   const sceneId = state.sceneId;
   const portrait = beat ? app.querySelector('.speaker canvas') : null;
   const paint = (x, motion = 0, stride = 0, sceneTime = 0) => {
-    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion, stride, sceneTime);
+    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion, stride, Math.max(0, sceneTime - (enteringCup ? walkDuration : 0)), interaction);
     if (portrait) drawPortrait(portrait, beat.speaker, beat.mood, motion);
   };
-  const previous = from?.sceneId === 'opening' ? 45 : from ? position(node, from) : to;
   const hasAtmosphere = ['room', 'street', 'cafe'].includes(node.place) || ['morning', 'challenge', 'clarify', 'wait'].includes(sceneId);
-  if (document.documentElement.dataset.still === 'true' || (!beat && previous === to && !hasAtmosphere)) {
-    paint(to, 0, 0, sceneId === 'wait' ? 1500 : 0);
+  if (startsScene && sceneId === 'morning') sceneSound('chair');
+  if (still || (!beat && previous === to && !hasAtmosphere)) {
+    if (enteringCup) sceneSound('cup');
+    if (still && distance) sceneSound('step', node.place);
+    paint(to, 0, 0, 1500 + walkDuration);
     return;
   }
   const start = performance.now();
   let lastFrame = -1;
+  let lastStep = -1;
+  let cupPlayed = false;
   function step(now) {
     const elapsed = now - start;
     if (document.documentElement.dataset.still === 'true') {
@@ -349,11 +399,20 @@ function animateStage(canvas, node, beat, from) {
       return;
     }
     const frame = Math.floor(elapsed / 85);
-    const walking = Math.min(elapsed / 420, 1);
+    const walking = walkDuration ? Math.min(elapsed / walkDuration, 1) : 1;
+    const stepNumber = Math.floor(elapsed / 225);
+    if (walking < 1 && stepNumber !== lastStep) {
+      lastStep = stepNumber;
+      sceneSound('step', node.place);
+    }
+    if (enteringCup && !cupPlayed && walking === 1) {
+      cupPlayed = true;
+      sceneSound('cup');
+    }
     if (frame !== lastFrame) {
       lastFrame = frame;
       const talking = beat && elapsed < Math.min(3400, Math.max(1050, beat.text.length * 22));
-      const stride = previous !== to && walking < 1 ? [0, 3, 0, -3][frame % 4] : 0;
+      const stride = previous !== to && walking < 1 ? Math.round(Math.sin(elapsed / 36) * 5) : 0;
       paint(Math.round(previous + (to - previous) * walking), talking ? frame + 1 : 0, stride, elapsed);
       if (walking === 1 && !talking && !hasAtmosphere) return;
     }
@@ -364,6 +423,8 @@ function animateStage(canvas, node, beat, from) {
 }
 
 function render(focus, from) {
+  stopRecitation();
+  setWindowRain(view === 'game' && state.hotspot === 'window');
   finishTyping();
   cancelAnimationFrame(walkFrame);
   if (view !== 'game') {
@@ -435,6 +496,7 @@ function finishTyping() {
 
 function openPanel(name, contents) {
   finishTyping();
+  stopRecitation();
   if (!dialog.open) previousFocus = document.activeElement;
   dialog.innerHTML = `<header class="panel-header"><h2 id="overlay-title">${name}</h2>
     <button data-action="close" autofocus>نسكّر <span aria-hidden="true">×</span></button></header>${contents}`;
@@ -442,7 +504,10 @@ function openPanel(name, contents) {
   dialog.querySelector('[data-action="close"]').focus();
 }
 
-dialog.addEventListener('close', () => previousFocus?.isConnected && previousFocus.focus());
+dialog.addEventListener('close', () => {
+  if (dialog.contains(recitation)) stopRecitation();
+  if (previousFocus?.isConnected) previousFocus.focus();
+});
 
 function settingsPanel() {
   openPanel('الضبط', `<div class="settings">
@@ -468,15 +533,57 @@ function journal() {
     ${judgments.length ? `<h3>أحكامي والثقة فيها</h3><ol class="judgments">${judgments.join('')}</ol>` : ''}`);
 }
 
+const verseAudio = 'https://everyayah.com/data/Minshawy_Mujawwad_192kbps/049012.mp3';
+const verseSource = 'https://quran.com/ar/49/12';
+
 function verse() {
-  return `<blockquote lang="ar">﴿ٱجْتَنِبُوا۟ كَثِيرًۭا مِّنَ ٱلظَّنِّ إِنَّ بَعْضَ ٱلظَّنِّ إِثْمٌۭ﴾</blockquote>
-    <p class="hint">من سورة الحجرات، الآية <bdi dir="ltr">49:12</bdi>.</p>`;
+  return `<blockquote lang="ar">﴿يَا أَيُّهَا الَّذِينَ آمَنُوا اجْتَنِبُوا كَثِيرًا مِنَ ٱلظَّنِّ إِنَّ بَعْضَ ٱلظَّنِّ إِثْمٌ ۖ وَلَا تَجَسَّسُوا وَلَا يَغْتَبْ بَعْضُكُمْ بَعْضًا ۚ أَيُحِبُّ أَحَدُكُمْ أَنْ يَأْكُلَ لَحْمَ أَخِيهِ مَيْتًا فَكَرِهْتُمُوهُ ۚ وَاتَّقُوا اللَّهَ ۚ إِنَّ اللَّهَ تَوَّابٌ رَحِيمٌ﴾</blockquote>
+    <p class="hint">سورة الحجرات، الآية <bdi dir="ltr">49:12</bdi> · تلاوة محمّد صدّيق المنشاوي</p>
+    <div class="verse-player">
+      <button data-action="recite">نسمع الآية</button>
+      <span class="hint" role="status"></span>
+      <a href="${verseSource}" target="_blank" rel="noopener noreferrer">الآية على Quran.com</a>
+    </div>`;
+}
+
+function stopRecitation() {
+  if (!recitation) return;
+  const player = recitation;
+  recitation = undefined;
+  player.pause();
+  const control = player.control;
+  control.textContent = 'نسمع الآية';
+  setRecitationActive(false);
+}
+
+async function playRecitation(control) {
+  if (recitation?.control === control) {
+    stopRecitation();
+    return;
+  }
+  stopRecitation();
+  const status = control.parentElement.querySelector('[role="status"]');
+  const player = new Audio(verseAudio);
+  player.volume = settings.volume / 100;
+  player.control = control;
+  recitation = player;
+  control.textContent = 'نوقّف التلاوة';
+  status.textContent = '';
+  setRecitationActive(true);
+  player.addEventListener('ended', () => {
+    if (recitation === player) stopRecitation();
+  });
+  try {
+    await player.play();
+  } catch {
+    if (recitation !== player) return;
+    stopRecitation();
+    status.textContent = 'التلاوة ما خدمِتش. تنجّم تسمعها من اللينك.';
+  }
 }
 
 function source() {
-  openPanel('على الآية', `${verse()}
-    <p>في الحكاية شفت ناس تسمع كلمة وتعاودها، وناس تشكّ وتسأل قبل ما تحكم. تنجّم تقرا الآية كاملة من اللينك.</p>
-    <p><a href="https://quran.com/ar/49/12" target="_blank" rel="noopener noreferrer">نقرا الآية كاملة</a></p>`);
+  openPanel('على الآية', verse());
 }
 
 function confirmRestart() {
@@ -507,6 +614,7 @@ document.addEventListener('click', event => {
       break;
     case 'resume': start(true); break;
     case 'sound':
+      stopRecitation();
       settings = { ...settings, music: !settings.music };
       saveSettings(storage, settings);
       updateSoundButton();
@@ -516,6 +624,20 @@ document.addEventListener('click', event => {
     case 'settings': settingsPanel(); break;
     case 'journal': journal(); break;
     case 'source': source(); break;
+    case 'ending-insights':
+      app.querySelector('#reflection-title').focus();
+      break;
+    case 'ending-verse': {
+      const listen = app.querySelector('.lesson [data-action="recite"]');
+      listen.focus();
+      void playRecitation(listen);
+      break;
+    }
+    case 'recite': void playRecitation(control); break;
+    case 'sip':
+      cancelAnimationFrame(walkFrame);
+      animateStage(app.querySelector('.stage canvas'), chapter[state.sceneId], currentBeats(state)[state.beatIndex], state, true);
+      break;
     case 'about':
       openPanel('على الحكاية', '<p>إنت سامي، متطوّع في جمعيّة الجسر. دوّر في البلايص، اسمع للناس، وقارن الورق. اختيارك يبدّل شنوّة تعرف وشنوّة يصير.</p><p>الحفظ على المتصفّح هذا. <bdi dir="ltr">Tab</bdi> للتنقّل و<bdi dir="ltr">Enter</bdi> للاختيار.</p><button data-action="source">على الآية</button>');
       break;
@@ -545,6 +667,14 @@ document.addEventListener('keydown', event => {
   copy.scrollBy({ top: (event.key === 'PageDown' ? 1 : -1) * copy.clientHeight });
   event.preventDefault();
 });
+
+document.addEventListener('invalid', event => {
+  if (event.target.name !== 'confidence' || !event.target.form?.querySelector('[name="choice"]:checked')) return;
+  event.preventDefault();
+  const first = event.target.form.querySelector('[name="confidence"]');
+  first.focus();
+  first.closest('fieldset').classList.add('needs-confidence');
+}, true);
 
 document.addEventListener('submit', event => {
   if (event.target.id !== 'decision') return;
