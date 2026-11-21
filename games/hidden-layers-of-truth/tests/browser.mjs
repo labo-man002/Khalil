@@ -400,7 +400,17 @@ try {
     const recap = page.locator('.case-recap').first();
     assert.match(await page.locator('.finale-hero .label').innerText(), /الحكاية/);
     assert.equal(await recap.locator('dl > div').first().isVisible(), false);
-    await click(action('ending-skip'));
+    if (!mobile) await page.emulateMedia({ reducedMotion: 'no-preference' });
+    if (variant.name === 'desktop' || variant.name === 'mobile') {
+      while (await action('ending-next').isVisible()) await click(action('ending-next'));
+    } else {
+      await click(action('ending-skip'));
+    }
+    await page.waitForFunction(() => {
+      const link = document.querySelector('#ending-case [data-ending-link]').getBoundingClientRect();
+      const scroll = document.querySelector('.finale-scroll').getBoundingClientRect();
+      return link.height > 0 && link.top >= scroll.top - 1 && link.bottom <= scroll.bottom + 1;
+    });
     assert.match(await recap.innerText(), /2,400. دينار/);
     assert.match(await recap.innerText(), /قعدوا في حساب الجمعيّة/);
     assert.match(await recap.innerText(), /ما تأكّدناش/);
@@ -409,7 +419,6 @@ try {
     assert(Math.abs(endingBounds.y + endingBounds.height - variant.viewport.height) <= 1);
     assert.equal(await page.locator('#ending-insights').isVisible(), false);
     await capture('ending');
-    if (!mobile) await page.emulateMedia({ reducedMotion: 'no-preference' });
     await click(endingTab('insights'));
     assert.equal(await endingTab('insights').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#reflection-title').evaluate(el => el === document.activeElement), true);

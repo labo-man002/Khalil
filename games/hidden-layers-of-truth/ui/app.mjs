@@ -400,17 +400,22 @@ function updateEndingControls(page) {
     (page.querySelector('[data-ending-link]') ?? page.querySelector('h2')).focus({ preventScroll: true });
   }
   reading.hidden = complete;
+  return complete ? page.querySelector('[data-ending-link]') : null;
+}
+
+function scrollToEndingContent(element) {
+  element?.scrollIntoView({ block: 'nearest', behavior: document.documentElement.dataset.still === 'true' ? 'instant' : 'smooth' });
 }
 
 function showNextEndingStep(page, fromButton = false) {
   const next = page.querySelector('.ending-pending');
   if (!next) return;
   next.classList.replace('ending-pending', 'ending-arriving');
+  const link = updateEndingControls(page);
   if (fromButton) {
     announcement.textContent = next.matches('details') || next.querySelector('button') ? '' : next.textContent.trim();
-    next.scrollIntoView({ block: 'nearest' });
+    scrollToEndingContent(link ?? next);
   }
-  updateEndingControls(page);
 }
 
 function startEndingPage(page) {
@@ -422,7 +427,7 @@ function startEndingPage(page) {
 function skipEndingReveal(page) {
   page.querySelectorAll('.ending-pending').forEach(step => step.classList.replace('ending-pending', 'ending-arriving'));
   page.querySelectorAll('.ending-arriving').forEach(step => step.classList.add('ending-instant'));
-  updateEndingControls(page);
+  scrollToEndingContent(updateEndingControls(page));
 }
 
 function position(node, current) {
