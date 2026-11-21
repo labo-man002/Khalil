@@ -15,6 +15,7 @@ const storage = {
   setItem: (key, value) => window.localStorage.setItem(key, value),
 };
 let { state, events, notice } = loadStory(storage);
+if (notice === 'old') notice = null;
 let settings = loadSettings(storage);
 let view = 'splash';
 let typing;
@@ -22,7 +23,6 @@ let previousFocus;
 let walkFrame;
 
 const messages = {
-  old: 'الحفظ القديم ما يتقراش في النسخة هاذي. تنجّم تبدأ الحكاية من جديد.',
   invalid: 'الحفظ ما تقراش. تنجّم تبدأ من جديد.',
   unsaved: 'المتصفّح ما خلّاناش نحفظوا. تنجّم تلعب، أما التقدّم ينجم يضيع كي تسكّر الصفحة.',
 };
@@ -88,8 +88,8 @@ function stage(node) {
 }
 
 function soundButton() {
-  return `<button data-action="sound" class="sound-toggle" aria-label="الموسيقى" aria-pressed="${settings.music}">
-    <span aria-hidden="true">♫</span><span data-sound-label>${settings.music ? 'الصوت شاعل' : 'الصوت طافي'}</span>
+  return `<button data-action="sound" class="sound-toggle" aria-pressed="${settings.music}">
+    <span class="sound-indicator" aria-hidden="true">♫</span>الصوت
   </button>`;
 }
 
@@ -97,7 +97,6 @@ function updateSoundButton() {
   const button = app.querySelector('[data-action="sound"]');
   if (!button) return;
   button.setAttribute('aria-pressed', settings.music);
-  button.querySelector('[data-sound-label]').textContent = settings.music ? 'الصوت شاعل' : 'الصوت طافي';
 }
 
 function splash() {
@@ -119,25 +118,31 @@ function splash() {
 }
 
 function chapterMenu() {
-  const finished = state && chapter[state.sceneId].kind === 'end';
-  const action = !state ? 'start' : 'resume';
-  const label = !state ? 'نلعب الفصل' : finished ? 'نشوف النهاية' : 'نكمّل من وين وقفت';
-  return `<main class="game chapter-menu">
-    <div class="stage chapter-stage" data-place="street">
-      <canvas width="480" height="224" aria-hidden="true"></canvas>
-      <div class="weather" aria-hidden="true"></div>
-      <p class="stage-caption"><span class="map-pin" aria-hidden="true"></span>قدّام قهوة الحومة</p>
+  const current = state ? chapter[state.sceneId] : null;
+  const finished = current?.kind === 'end';
+  const action = state ? 'resume' : 'start';
+  const label = finished ? 'نشوف النهاية' : state ? 'نكمّل اللعب' : 'نلعب الفصل';
+  const progress = finished ? 'كمّلت الفصل' : current ? `وقفت في ${locations[current.place]}` : '';
+  return `<main class="game chapter-menu" aria-labelledby="chapters-title">
+    <div class="chapters-heading">
+      <h1 id="chapters-title">الفصول</h1>
+      <button class="chapter-back" data-action="splash">نرجع للبداية</button>
     </div>
-    <section class="story-panel chapters" aria-labelledby="chapters-title">
-      <div class="chapters-heading"><h1 id="chapters-title">الفصول</h1><button data-action="splash">نرجع للبداية</button></div>
-      <article class="chapter-card">
-        <div><p class="label">الفصل اللّول</p><h2>اللّي ما تقالش</h2><p>إنت سامي. قبل ما تبعث حساب التبرّعات، لينا تطلب منك تتثبّت في رقم.</p></div>
+    <article class="chapter-card" aria-labelledby="chapter-one-title">
+      <div class="chapter-stage" aria-hidden="true">
+        <canvas width="480" height="224"></canvas>
+      </div>
+      <div class="chapter-details">
+        <p class="label">الفصل اللّول</p>
+        <h2 id="chapter-one-title">اللّي ما تقالش</h2>
+        <p class="chapter-description">بعثت ميساج لآدم باش يراجع حساب التبرّعات. قراه وما جاوبش. قبل ما تبعث التقرير، لينا تقلك تستنّى.</p>
+        ${progress ? `<p class="chapter-progress">${progress}</p>` : ''}
         <div class="toolbar chapter-actions">
           <button class="primary" data-action="${action}">${label}</button>
-          ${state ? '<button data-action="start">نعاود الفصل</button>' : ''}
+          ${state ? '<button data-action="start">نعاود من اللّول</button>' : ''}
         </div>
-      </article>
-    </section>
+      </div>
+    </article>
     ${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}
   </main>`;
 }
@@ -306,7 +311,7 @@ function render(focus, from) {
     announcement.textContent = '';
     setSceneMusic(view === 'splash' ? 'title' : 'street');
     app.innerHTML = view === 'splash' ? splash() : gameHeader() + chapterMenu();
-    drawScene(app.querySelector('canvas'), 'street', view);
+    drawScene(app.querySelector('canvas'), view === 'splash' ? 'street' : 'room', view);
     const target = focus ?? (view === 'splash' ? '[data-action="enter"]' : '.chapter-actions .primary');
     app.querySelector(target)?.focus({ preventScroll: true });
     return;

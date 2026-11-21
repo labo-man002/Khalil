@@ -26,7 +26,7 @@ Build **one complete, polished Chapter 1** with a target duration of ~20–35 mi
 
 ### Player experience
 - Landing/title screen with **Start**, **Continue**, **Settings**, **Chapter / About**, and keyboard controls hint.
-- Intro cinematic, atmospheric music/SFX (off by default or user opt-in; never autoplay before interaction), subtitles/text.
+- Intro cinematic, atmospheric music and sound effects enabled by default and started on player interaction. Remember an explicit mute preference. Include subtitles or text.
 - At least three visually distinct navigable 2D locations: Sami's room, The Bridge's community office, neighborhood café or street. A player can move or select hotspots with mouse/touch and keyboard; interactive objects visibly respond.
 - Conversations with Sami, Adam, Lina, Youssef, Maryam; portraits/expressions, speaker names, readable dialogue, skip/typewriter toggle.
 - A minimum of seven substantive judgment/decision moments, each with confidence (0–100%) where relevant; an alternative "I don't know" when epistemically appropriate.

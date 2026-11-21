@@ -113,6 +113,9 @@ try {
         return connect.call(this, target, ...args);
       };
     });
+    if (variant.name === 'narrow') {
+      await page.addInitScript(() => localStorage.setItem('hlt-darja-v1', '{"old":true}'));
+    }
     await page.goto(route);
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar-TN');
@@ -122,12 +125,16 @@ try {
     assert.equal(await page.locator('.splash-series').innerText(), 'Hidden Layers of Truth');
     assert.equal(await page.locator('.splash-menu').evaluate(el => getComputedStyle(el).animationName), 'none');
     await capture('title');
+    const quietStart = variant.name === 'narrow';
+    const music = action('sound');
+    assert.match(await music.innerText(), /^♫\s*الصوت$/);
+    assert.equal(await music.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.evaluate(() => window.musicMeter), undefined);
+    if (quietStart) await click(music);
     if (!mobile) {
-      assert.equal(await page.evaluate(() => window.musicMeter), undefined);
-      await click(action('sound'));
+      await click(music);
+      await click(music);
       await hear(69);
-      await click(action('sound'));
-      assert.equal(await action('sound').getAttribute('aria-pressed'), 'false');
       await action('enter').focus();
     }
     if (!mobile) {
@@ -137,11 +144,13 @@ try {
       await click(action('enter'));
     }
     assert.equal(await page.locator('.chapter-card').count(), 1);
+    assert.equal(await page.locator('.chapter-menu .notice').count(), 0);
+    if (!quietStart) await hear(62);
     await click(action('splash'));
     assert.equal(await page.locator('.chapter-card').count(), 0);
     await click(action('enter'));
     await click(action('settings'));
-    assert.equal(await action('sound').getAttribute('aria-pressed'), 'false');
+    assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
     await panel.locator('#volume').fill('36');
     if (mobile) await click(panel.locator('label:has(#still)'));
     await click(panel.locator('label:has(#instant)'));
@@ -150,12 +159,8 @@ try {
     assert.equal(await panel.isVisible(), false);
     assert.equal(await action('settings').evaluate(el => document.activeElement === el), true);
 
-    const quietStart = variant.name === 'narrow';
-    const music = action('sound');
     assert.equal(await page.locator('.chapter-card').count(), 1);
     assert.equal(await page.locator('.chapter-stage canvas').count(), 1);
-    if (mobile) assert.equal(await page.evaluate(() => window.musicMeter), undefined);
-    if (!quietStart) await click(music);
     assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
     await click(action('start'));
     assert.equal(await page.locator('.first-clue').evaluate(el => document.activeElement === el), true);
@@ -234,6 +239,7 @@ try {
 
     await page.reload();
     await click(action('enter'));
+    assert.match(await page.locator('.chapter-progress').innerText(), /وقفت في قهوة الحومة/);
     await click(action('resume'));
     assert.equal(await page.locator('#animated-text').textContent(), resumeLine);
     assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
