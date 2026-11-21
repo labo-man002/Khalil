@@ -303,3 +303,51 @@ blockquote { margin:0 0 .6rem; font-size:1.3rem; color:var(--amber) }
 }
 .investigation-progress span { color:var(--amber) }
 .spot[data-required=false]:not(:disabled) { border-color:#82958e }
+
+/* Keep the scene in view while the player reads or investigates. */
+body.playing { overflow:hidden }
+.playing #app { display:grid; grid-template-rows:auto minmax(0,1fr); height:100dvh }
+.playing .top { width:100%; max-width:none }
+.play-layout {
+  display:grid; grid-template-rows:minmax(0, min(46dvh, 430px)) minmax(0,1fr);
+  gap:.6rem; width:100%; max-width:1600px; min-height:0; padding-bottom:.6rem;
+}
+.play-layout > .stage {
+  width:100%; height:100%; min-height:0; aspect-ratio:auto;
+  display:grid; grid-template-rows:minmax(0,1fr) auto; border-radius:9px;
+}
+.play-layout > .stage canvas { min-height:0; height:100%; aspect-ratio:auto }
+.play-panel { min-width:0; min-height:0; overflow:auto; overscroll-behavior:contain }
+.play-panel > .story-panel { border:1px solid var(--frame); border-radius:9px }
+.play-panel:has(.dialogue) { display:grid; grid-template-rows:minmax(0,1fr) auto; overflow:hidden }
+.play-panel > .dialogue { min-height:0; display:grid; grid-template-rows:minmax(0,1fr) auto; padding:0 }
+.dialogue-copy { min-height:0; overflow:auto; padding:clamp(.75rem,2vw,1.5rem) }
+.dialogue-actions { padding:.6rem clamp(.75rem,2vw,1.5rem); border-block-start:1px solid var(--frame) }
+.speech { display:grid }
+.speech > #animated-text, .speech > .line-size { grid-area:1 / 1 }
+.line-size { visibility:hidden; pointer-events:none }
+@media (min-width:1150px) {
+  .play-layout { grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr) }
+}
+@media (max-width:700px) {
+  .play-layout { grid-template-rows:minmax(0,min(48dvh,350px)) minmax(0,1fr) }
+  .play-layout .stage:has(.stage-actions) canvas { height:100%; aspect-ratio:auto }
+}
+@media (max-height:480px) and (orientation:landscape) {
+  .play-layout { grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr) }
+  .play-layout .stage-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.35rem; padding:.4rem }
+  .play-layout .stage-actions .spot { position:static; transform:none; min-width:0; white-space:normal; font-size:.8rem }
+}
+.opening-layout {
+  position:relative; isolation:isolate; grid-template-columns:1fr; grid-template-rows:minmax(0,1fr);
+}
+.opening-layout > .stage, .opening-layout > .play-panel { grid-area:1 / 1; width:100%; height:100% }
+.opening-layout > .stage canvas { object-fit:cover }
+.opening-layout .stage-caption { display:none }
+.opening-layout > .play-panel {
+  z-index:1; display:grid; align-items:end; justify-items:center;
+  background:linear-gradient(0deg,#071015fa 7%,#071015bf 37%,transparent 86%); border-radius:9px;
+}
+.prologue { width:min(100%,48rem); padding:clamp(1rem,5vw,3.3rem); animation:opening-title .7s ease-out both }
+.prologue .line { margin-block:.7rem 1rem; text-shadow:0 1px 10px #000; }
+.prologue h1 { font-size:clamp(1.65rem,5vw,3.25rem); color:var(--amber) }

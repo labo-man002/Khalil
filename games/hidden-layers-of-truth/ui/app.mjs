@@ -48,10 +48,9 @@ function dispatch(event, focus) {
 }
 
 function start(resume) {
-  if (!resume || state.sceneId === 'opening') {
-    // Keep the original opening events so older saves replay to the same scene.
-    events = [{ type: 'advance' }, { type: 'advance' }];
-    state = events.reduce(transition, newStory());
+  if (!resume) {
+    events = [];
+    state = newStory();
     notice = saveStory(storage, events) ? null : 'unsaved';
   }
   view = 'game';
@@ -169,13 +168,34 @@ function dialogue(beat, closing) {
   const [name, , , , role, accent] = cast[beat.speaker];
   const byMessage = state.sceneId === 'intro' && state.hotspot === 'inbox' && beat.speaker === 'lina';
   return `<section class="story-panel dialogue" aria-labelledby="scene-title" style="--speaker-accent:${accent}">
+    <div class="dialogue-copy">
     <div class="speaker" data-speaker="${beat.speaker}">
       <canvas width="48" height="48" aria-hidden="true"></canvas>
       <div><h1 tabindex="-1" id="scene-title">${name}</h1><p>${byMessage ? 'ميساج من لينا' : role}</p></div>
     </div>
-    <p class="line speech"><span id="animated-text" aria-hidden="true">${beat.text}</span><span class="sr-only">${beat.text}</span></p>
+    ${storyLine(beat.text)}
     ${exhibit()}
-    <button class="primary next" data-action="advance">${closing ? 'نسكّر' : 'نكمل'} <span aria-hidden="true">←</span></button>
+    </div>
+    <footer class="dialogue-actions"><button class="primary" data-action="advance">${closing ? 'نسكّر' : 'نكمل'} <span aria-hidden="true">←</span></button></footer>
+  </section>`;
+}
+
+function storyLine(text) {
+  return `<p class="line speech"><span id="animated-text" aria-hidden="true">${text}</span>
+    <span class="line-size" aria-hidden="true">${text}</span><span class="sr-only">${text}</span></p>`;
+}
+
+function prologue(beat) {
+  return `<section class="prologue" aria-labelledby="prologue-title">
+    <div class="prologue-copy">
+      <p class="label">نهار الخميس في الليل</p>
+      <h1 id="prologue-title">أنا سامي</h1>
+      ${storyLine(beat.text)}
+    </div>
+    <div class="toolbar prologue-actions">
+      <button class="primary" data-action="advance">${state.beatIndex === 0 ? 'نكمل' : 'ندخل للدار'}</button>
+      <button data-action="skip-opening">نتعدّى للّعب</button>
+    </div>
   </section>`;
 }
 
@@ -308,6 +328,7 @@ function render(focus, from) {
   finishTyping();
   cancelAnimationFrame(walkFrame);
   if (view !== 'game') {
+    document.body.classList.remove('playing');
     announcement.textContent = '';
     setSceneMusic(view === 'splash' ? 'title' : 'street');
     app.innerHTML = view === 'splash' ? splash() : gameHeader() + chapterMenu();
@@ -317,13 +338,17 @@ function render(focus, from) {
     return;
   }
   const node = chapter[state.sceneId];
-  setSceneMusic(musicCue(state));
+  document.body.classList.add('playing');
+  const opening = state.sceneId === 'opening';
+  setSceneMusic(opening ? 'title' : musicCue(state));
   const beats = currentBeats(state);
   const beat = beats?.[state.beatIndex];
-  const body = beat ? dialogue(beat, state.hotspot && state.beatIndex === beats.length - 1)
+  const body = opening ? prologue(beat)
+    : beat ? dialogue(beat, state.hotspot && state.beatIndex === beats.length - 1)
     : node.kind === 'explore' ? investigation(node) : node.kind === 'decision' ? decision(node) : finish();
-  app.innerHTML = gameHeader() + `<main class="game">${stage(node)}${body}
-  ${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}</main>`;
+  app.innerHTML = gameHeader() + `<main class="game play-layout${opening ? ' opening-layout' : ''}">${stage(node)}
+    <div class="play-panel">${body}${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}</div>
+  </main>`;
   announcement.textContent = beat ? `${cast[beat.speaker][0]}. ${beat.text}` : '';
   animateStage(app.querySelector('.stage canvas'), node, beat, from);
   if (beat && !settings.instantText && document.documentElement.dataset.still !== 'true') typeLine(beat.text);
@@ -460,6 +485,9 @@ document.addEventListener('click', event => {
       render();
       break;
     case 'inspect': dispatch({ type: 'inspect', id: control.dataset.id }, '[data-action="advance"]'); break;
+    case 'skip-opening':
+      while (state.sceneId === 'opening') dispatch({ type: 'advance' });
+      break;
     case 'advance':
       if (!finishTyping()) dispatch({ type: 'advance' });
       break;
