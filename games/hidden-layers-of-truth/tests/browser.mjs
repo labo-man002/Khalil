@@ -35,7 +35,7 @@ try {
 
   for (const variant of [
     { name: 'desktop', viewport: { width: 1366, height: 1024 }, ending: 'correct', lead: 'records', title: 'قدّام نفس الناس' },
-    { name: 'mobile', viewport: { width: 390, height: 844 }, ending: 'internal', lead: 'adam', title: 'في عهدة اللجنة' },
+    { name: 'mobile', viewport: { width: 390, height: 844 }, ending: 'internal', lead: 'adam', title: 'التقرير عند اللجنة' },
     { name: 'narrow', viewport: { width: 320, height: 740 }, ending: 'post', lead: 'witnesses', title: 'سبق الكلام' },
   ]) {
     const mobile = variant.name !== 'desktop';
@@ -131,6 +131,10 @@ try {
     await inspect('inbox');
     await click(action('leave'));
     await choose('exclude', 72);
+    assert.equal(await page.locator('[data-speaker="sami"] h1').innerText(), 'سامي');
+    await click(action('advance'));
+    assert.equal(await page.locator('[data-speaker="adam"] h1').innerText(), 'آدم');
+    assert.match(await page.locator('[data-speaker="adam"]').innerText(), /صاحبك/);
     await drain();
     await choose('clarify');
     await drain();
@@ -176,7 +180,12 @@ try {
     await choose(variant.ending);
     await drain();
     assert.equal(await page.locator('#scene-title').textContent(), variant.title);
+    const recap = page.locator('.case-recap').first();
+    assert.match(await recap.innerText(), /2,400/);
+    assert.match(await recap.innerText(), /قعدوا في حساب الجمعيّة/);
+    assert.match(await recap.innerText(), /ما تأكّدناش/);
     assert.match(await page.locator('.reflection').innerText(), /86%/);
+    assert.match(await page.locator('.reflection').innerText(), /ما جاوبكش/);
     await capture('ending', true);
 
     await page.reload();

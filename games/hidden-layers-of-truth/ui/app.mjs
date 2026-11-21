@@ -3,9 +3,9 @@ import { chapter, exhibits, locations } from '../content/chapter.mjs';
 import { evidence, evidenceTypes } from '../content/evidence.mjs';
 import { currentBeats, newStory, transition } from '../engine/story.mjs';
 import { loadSettings, loadStory, saveSettings, saveStory } from '../engine/save.mjs';
-import { chime, setAudio } from '../render/audio.mjs';
+import { chime, setAudio, setSceneMusic } from '../render/audio.mjs';
 import { cast, drawPortrait, drawScene } from '../render/art.mjs';
-import { interpretationLabel, outcomes, summarize } from '../reflection/summary.mjs';
+import { caseRecap, interpretationLabel, outcomes, summarize } from '../reflection/summary.mjs';
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#overlay');
@@ -70,7 +70,7 @@ async function syncSound() {
   if (status) status.textContent = 'الصوت ما خدمش في المتصفّح هذا.';
 }
 
-function stage(node, beat) {
+function stage(node) {
   const spots = node.kind === 'explore' && !state.hotspot ? node.spots : [];
   return `<div class="stage" data-place="${node.place}">
     <canvas width="480" height="224" aria-hidden="true"></canvas>
@@ -81,7 +81,6 @@ function stage(node, beat) {
       return `<button class="spot${state.sceneId === 'intro' && !state.inspected.includes('phone') && spot.id === 'phone' ? ' first-clue' : ''}" data-action="inspect" data-id="${spot.id}" style="--x:${spot.x}%;--y:${spot.y}%"
         ${seen ? 'disabled' : ''}><span aria-hidden="true">${seen ? '✓' : '+'}</span>${spot.label}</button>`;
     }).join('')}
-    ${beat && state.hotspot ? `<span class="scene-speaker">${cast[beat.speaker][0]}</span>` : ''}
   </div>`;
 }
 
@@ -98,7 +97,7 @@ function title() {
           <span aria-hidden="true">♫</span> ${state ? 'نكمّل بالموسيقى' : 'نبدأ بالموسيقى'}</button>
         <button data-action="${state ? 'resume' : 'start'}" data-sound="off">${state ? 'نكمّل بلا صوت' : 'نبدأ بلا صوت'}</button>
         ${state ? '<button data-action="start">نعاود من اللّول</button>' : ''}
-        <button data-action="settings">الإعدادات</button>
+        <button data-action="settings">الضبط</button>
         <button data-action="about">على الحكاية</button>
       </div>
       <p class="hint">إلمس العلامات ولا تنقّل بـ <bdi dir="ltr">Tab</bdi> وافتح بـ <bdi dir="ltr">Enter</bdi>.</p>
@@ -117,12 +116,14 @@ function exhibit() {
 }
 
 function dialogue(beat, closing) {
-  return `<section class="story-panel dialogue" aria-labelledby="scene-title">
-    <div class="speaker">
+  const [name, , , , role, accent] = cast[beat.speaker];
+  const byMessage = state.sceneId === 'intro' && state.hotspot === 'inbox' && beat.speaker === 'lina';
+  return `<section class="story-panel dialogue" aria-labelledby="scene-title" style="--speaker-accent:${accent}">
+    <div class="speaker" data-speaker="${beat.speaker}" aria-live="polite" aria-atomic="true">
       <canvas width="48" height="48" aria-hidden="true"></canvas>
-      <h1 tabindex="-1" id="scene-title">${cast[beat.speaker][0]}</h1>
+      <div><h1 tabindex="-1" id="scene-title">${name}</h1><p>${byMessage ? 'ميساج من لينا' : role}</p></div>
     </div>
-    <p class="line"><span id="animated-text" aria-hidden="true">${beat.text}</span><span class="sr-only">${beat.text}</span></p>
+    <p class="line speech"><span id="animated-text" aria-hidden="true">${beat.text}</span><span class="sr-only">${beat.text}</span></p>
     ${exhibit()}
     <button class="primary next" data-action="advance">${closing ? 'نسكّر' : 'نكمل'} <span aria-hidden="true">←</span></button>
   </section>`;
@@ -158,31 +159,43 @@ function finish() {
   return `<section class="story-panel ending">
     <p class="label">نهاية الفصل</p>
     <h1 id="scene-title" tabindex="-1">${outcome.title}</h1>
-    <p class="line">${outcome.consequence}</p>
-    <p>${summary.askedWitness
-      ? state.actions.final === 'correct'
-        ? 'آدم حضر التصحيح وقال قدّام المتطوّعين اللي كان يعرف بالتعديل. تفاصيل الإعانة بقات بيناتكم.'
-        : 'آدم بعثلك شهادتو مكتوبة. خلّا لك القرار وين تستعملها.'
-      : 'آدم خلّى الكلام للينا. كي تلاقَيتوا عند الباب، سلّم عليك من بعيد.'}
-    ${state.actions.lead === 'records' && state.actions.final === 'correct' ? 'لينا زادت توقيت التعديل في الملحق من سجلّ الملف.' : ''}
-    ${summary.passedRumor ? 'أمينة قالتلك اللي الميساج اللي دارتو قبل التثبّت مازال يتبعث.' : ''}</p>
-    <div class="reflection">
-      <h2>كي ترجع للي اخترتو</h2>
-      <p><strong>أوّل سكوت.</strong> ${interpretationLabel(summary.opening)} · ${percent(summary.opening.confidence)}</p>
-      <p>${summary.opening.interpretation === 'exclude'
-      ? 'وقتها شفت قراءة الميساج والتصويرة. فكرة اللي قصدو ينحّيوك زادت على اللي ورّاتك التصويرة.'
-      : 'وقتها التصويرة بيّنت شكون كان في القهوة. علاش آدم سكت توضّح بعد، كي فسّر خوفو في الحديث معاك.'}</p>
-    <p><strong>قبل كشف الحساب.</strong> ${interpretationLabel(summary.before)} · ${percent(summary.before.confidence)}</p>
-      <p><strong>بعد كشف الحساب.</strong> ${interpretationLabel(summary.after)} · ${percent(summary.after.confidence)}</p>
-      <p class="hint">بين الحكمين قريت ${summary.added.map(id => evidence[id][1]).join('، ')}.</p>
-      <p>${summary.update}</p>
-      <p>${summary.passedRumor
-        ? 'خلّيت أمينة تدوّر الكلام قبل ما يتثبّت المصدر. في الدفتر وقتها كان عندك كلام منقول، بلا تسجيل ولا نصّ.'
-        : 'طلبت من أمينة ما تدوّرش الكلام. خليت باب التثبّت محلول قبل ما تعطي للرواية قوّة جديدة.'}</p>
-      <p class="hint">هاذي قراءة لاختياراتك في الحكاية برك. شخصيّتك وإيمانك ما يتقاسوش باللعبة هاذي.</p>
-    </div>
+    <section class="case-recap" aria-labelledby="case-title">
+      <h2 id="case-title">شنوّة صار بالحقّ؟</h2>
+      <dl>${caseRecap.map(([question, answer]) => `<div><dt>${question}</dt><dd>${answer}</dd></div>`).join('')}</dl>
+    </section>
+    <section class="case-recap" aria-labelledby="outcome-title">
+      <h2 id="outcome-title">شنوّة تبدّل باختيارك؟</h2>
+      <p>${outcome.consequence}</p>
+      <p>${summary.askedWitness
+        ? state.actions.final === 'correct'
+          ? 'آدم شهد قدّام الناس اللي كان يعرف بالتبديل. حكاية خوّه بقات بيناتكم.'
+          : 'آدم بعثلك كلامو مكتوب. خلّى لك القرار وين تستعملو.'
+        : 'التصحيح بقى على لينا. آدم سلّم عليك من بعيد.'}
+      ${state.actions.lead === 'records' && state.actions.final === 'correct' ? 'لينا زادت في الورقة وقتاش تبدّل الملفّ.' : ''}
+      ${summary.passedRumor ? 'أمينة قالتلك اللي الكلام اللي عاودتو مازال يدور.' : ''}</p>
+    </section>
+    <section class="reflection" aria-labelledby="reflection-title">
+      <h2 id="reflection-title">شنوّة تنجّم تتعلّم من اختياراتك؟</h2>
+      <div class="feedback">
+        <h3>كي آدم ما جاوبكش</h3>
+        <p class="hint">${interpretationLabel(summary.opening)} · ${percent(summary.opening.confidence)}</p>
+        <p>${summary.openingFeedback}</p>
+      </div>
+      <div class="feedback">
+        <h3>كي فتّشت على الفلوس</h3>
+        <p>${summary.leadFeedback}</p>
+        <p class="hint">قبل كشف البنك <strong>${percent(summary.before.confidence)}</strong> · ${interpretationLabel(summary.before)}<br>
+          بعد كشف البنك <strong>${percent(summary.after.confidence)}</strong> · ${interpretationLabel(summary.after)}</p>
+        <p>${summary.update}</p>
+      </div>
+      <div class="feedback">
+        <h3>كي أمينة جابتلك الكلام</h3>
+        <p>${summary.rumorFeedback}</p>
+      </div>
+      <p class="hint">الكلام هذا على اختياراتك في الحكاية برك.</p>
+    </section>
     <div class="toolbar"><button class="primary" data-action="start">نعاود نلعب</button>
-      <button data-action="journal">نفتح الدفتر</button><button data-action="source">الآية والسياق</button></div>
+      <button data-action="journal">نفتح الدفتر</button><button data-action="source">على الآية</button></div>
   </section>`;
 }
 
@@ -213,20 +226,22 @@ function render(focus, from) {
   finishTyping();
   cancelAnimationFrame(walkFrame);
   if (!inGame) {
+    setSceneMusic('street');
     app.innerHTML = title();
     drawScene(app.querySelector('canvas'), 'street', 'title');
     app.querySelector(focus ?? 'h1')?.focus();
     return;
   }
   const node = chapter[state.sceneId];
+  setSceneMusic(node.kind === 'end' ? 'end' : node.place);
   const beats = currentBeats(state);
   const beat = beats?.[state.beatIndex];
   const body = beat ? dialogue(beat, state.hotspot && state.beatIndex === beats.length - 1)
     : node.kind === 'explore' ? investigation(node) : node.kind === 'decision' ? decision(node) : finish();
   app.innerHTML = `<header class="top"><span class="brand">طبقات الحقيقة</span><div class="toolbar">
     <button data-action="journal">الدفتر <bdi>${state.evidence.length}</bdi></button>
-    <button data-action="settings">الإعدادات</button><button data-action="menu">القائمة</button>
-  </div></header><main class="game">${stage(node, beat)}${body}
+    <button data-action="settings">الضبط</button><button data-action="menu">القائمة</button>
+  </div></header><main class="game">${stage(node)}${body}
   ${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}</main>`;
   animateStage(app.querySelector('.stage canvas'), node, beat, from);
   if (beat) {
@@ -276,7 +291,7 @@ function openPanel(name, contents) {
 dialog.addEventListener('close', () => previousFocus?.isConnected && previousFocus.focus());
 
 function settingsPanel() {
-  openPanel('الإعدادات', `<div class="settings">
+  openPanel('الضبط', `<div class="settings">
     <label><input type="checkbox" id="sound" ${settings.music ? 'checked' : ''}> الموسيقى والمؤثّرات</label>
     <div class="confidence"><label for="volume">قوّة الصوت</label>
       <input type="range" id="volume" min="0" max="100" dir="ltr" value="${settings.volume}">
@@ -301,7 +316,7 @@ function journal() {
 }
 
 function source() {
-  openPanel('الآية والسياق', `<blockquote lang="ar">﴿ٱجْتَنِبُوا۟ كَثِيرًۭا مِّنَ ٱلظَّنِّ إِنَّ بَعْضَ ٱلظَّنِّ إِثْمٌۭ﴾</blockquote>
+  openPanel('على الآية', `<blockquote lang="ar">﴿ٱجْتَنِبُوا۟ كَثِيرًۭا مِّنَ ٱلظَّنِّ إِنَّ بَعْضَ ٱلظَّنِّ إِثْمٌۭ﴾</blockquote>
     <p>مقتطف من سورة الحجرات، الآية <bdi dir="ltr">49:12</bdi>.</p>
     <p>الحكاية تخلّيك تتأمّل في الفرق بين الحذر، والحكم على النيّة، والكلام اللي يتنقل على الناس.</p>
     <p><a href="https://quran.com/ar/49/12" target="_blank" rel="noopener noreferrer">نقرا الآية كاملة والسياق</a></p>`);
@@ -329,7 +344,7 @@ document.addEventListener('click', event => {
     case 'journal': journal(); break;
     case 'source': source(); break;
     case 'about':
-      openPanel('على الحكاية', '<p>إنت سامي، متطوّع في جمعيّة الجسر. دوّر في البلايص، اسمع للناس، وقارن الورق. اختيارك يبدّل شنوّة تعرف وشنوّة يصير.</p><p>الحفظ على المتصفّح هذا. <bdi dir="ltr">Tab</bdi> للتنقّل و<bdi dir="ltr">Enter</bdi> للاختيار.</p><button data-action="source">الآية والسياق</button>');
+      openPanel('على الحكاية', '<p>إنت سامي، متطوّع في جمعيّة الجسر. دوّر في البلايص، اسمع للناس، وقارن الورق. اختيارك يبدّل شنوّة تعرف وشنوّة يصير.</p><p>الحفظ على المتصفّح هذا. <bdi dir="ltr">Tab</bdi> للتنقّل و<bdi dir="ltr">Enter</bdi> للاختيار.</p><button data-action="source">على الآية</button>');
       break;
     case 'menu':
       openPanel('وقفنا الحكاية', '<p>تنجّم تكمّل من وين وقفت.</p><div class="toolbar"><button class="primary" data-action="close">نكمّل</button><button data-action="title">نرجع للعنوان</button><button data-action="start">نبدأ من اللّول</button></div>');

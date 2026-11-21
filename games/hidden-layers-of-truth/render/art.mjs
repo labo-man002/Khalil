@@ -1,12 +1,12 @@
 export const cast = {
-  sami: ['سامي', '#345d66', '#b77c5b', '#22252a'],
-  lina: ['لينا', '#715b50', '#c4835e', '#291e27'],
-  adam: ['آدم', '#53674b', '#b8815a', '#252d2b'],
-  youssef: ['يوسف', '#435075', '#a87151', '#2e2827'],
-  maryam: ['مريم', '#895e71', '#ce9672', '#422c40'],
-  amina: ['أمينة', '#537b74', '#9f654b', '#302b32'],
-  hala: ['هالة', '#895e71', '#a66a50', '#40272a'],
-  moncef: ['منصف', '#575e66', '#c08054', '#312c29'],
+  sami: ['سامي', '#345d66', '#b77c5b', '#22252a', 'إنت في الحكاية', '#9ad2d6'],
+  lina: ['لينا', '#715b50', '#c4835e', '#291e27', 'تتثبّت في الحسابات', '#f1bf89'],
+  adam: ['آدم', '#53674b', '#b8815a', '#252d2b', 'صاحبك في الجمعيّة', '#bfd397'],
+  youssef: ['يوسف', '#435075', '#a87151', '#2e2827', 'من فريق الجمعيّة', '#bac9ff'],
+  maryam: ['مريم', '#895e71', '#ce9672', '#422c40', 'أخت سامي', '#f0b2cb'],
+  amina: ['أمينة', '#537b74', '#9f654b', '#302b32', 'متطوّعة في الجمعيّة', '#8cddc1'],
+  hala: ['هالة', '#895e71', '#a66a50', '#40272a', 'كانت في الاجتماع', '#f3c0aa'],
+  moncef: ['منصف', '#575e66', '#c08054', '#312c29', 'كان في الاجتماع', '#c9d1da'],
 };
 
 const W = 480;
@@ -233,9 +233,10 @@ function cafe(p) {
   noise(0,40,480,136,460,'#ffd09b23');
 }
 
-function sprite(ctx,name,x,y,face=1) {
+function sprite(ctx,name,x,y,face=1,muted=false) {
   const [,shirt,skin,hair] = cast[name];
   ctx.save();
+  ctx.globalAlpha = muted ? 0.60 : 1;
   ctx.translate(x,y);
   ctx.scale(face,1);
   const {box,poly} = painter(ctx);
@@ -266,17 +267,23 @@ export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'ro
   scenes[place](p);
   const featured = {
     room: sceneId === 'home' || sceneId === 'mirror' || speaker === 'maryam' ? [['maryam',307,169,-1]] : [],
-    office: [['lina',237,170,1],['adam',270,173,-1],['youssef',321,177,-1],['hala',420,175,-1]],
+    office: [['lina',237,170,1],['adam',270,173,-1],['youssef',321,177,-1],['hala',415,175,-1],['moncef',448,177,-1]],
     street: [['amina',212,170,-1]],
     cafe: [['adam',351,159,-1]],
   };
-  for (const person of featured[place]) sprite(ctx, ...person);
-  sprite(ctx, 'sami', samiX, 189);
+  const people = [...featured[place], ['sami',samiX,189,1]];
+  for (const person of people) sprite(ctx, ...person, speaker && person[0] !== speaker);
   p.noise(0,0,W,H,2000,'#d5cfba0c');
   const shade = ctx.createRadialGradient(W/2,H/2,66,W/2,H/2,260);
   shade.addColorStop(0,'transparent');
   shade.addColorStop(1,'#0b141b96');
   p.box(0,0,W,H,shade);
+  const active = people.find(person => person[0] === speaker);
+  if (active) {
+    const [name,x,y] = active;
+    p.poly([[x,y-59],[x-5,y-65],[x-5,y-71],[x+5,y-71],[x+5,y-65]], '#111c24');
+    p.poly([[x,y-61],[x-3,y-66],[x-3,y-69],[x+3,y-69],[x+3,y-66]], cast[name][5]);
+  }
 }
 
 export function drawPortrait(canvas, speaker, mood) {
@@ -292,6 +299,14 @@ export function drawPortrait(canvas, speaker, mood) {
   box(14,13,4,13,'#28202048');
   poly([[11,13],[15,6],[31,5],[37,9],[38,15],[30,13],[20,15],[16,23],[12,22]],hair);
   if (['maryam','lina','amina','hala'].includes(speaker)) box(12,14,5,17,hair);
+  if (speaker==='adam') {
+    box(20,17,7,2,'#213035');
+    box(28,17,8,2,'#213035');
+    box(20,19,1,4,'#213035');
+    box(34,19,1,3,'#213035');
+  }
+  if (speaker==='lina') box(16,25,2,4,'#efbe88');
+  if (speaker==='maryam') poly([[9,27],[15,30],[20,39],[33,35],[33,39],[17,43],[9,36]],'#b983a0');
   if (speaker==='youssef') poly([[16,25],[22,28],[33,25],[35,27],[28,33],[21,32]],hair);
   box(22,19,3,2,'#231e21');
   box(31,18,3,2,'#231e21');

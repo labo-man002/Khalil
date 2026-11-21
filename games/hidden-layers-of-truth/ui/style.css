@@ -80,13 +80,12 @@ bdi, output { font-variant-numeric:tabular-nums }
 }
 @keyframes rain { to { background-position:-35px 60px } }
 .stage[data-place="office"] .weather, .stage[data-place="cafe"] .weather { display:none }
-.stage-caption, .scene-speaker {
+.stage-caption {
   position:absolute; inset-block-start:.75rem; inset-inline-start:.75rem;
   display:flex; align-items:center; gap:.45rem; background:#101b21e8; border:1px solid #74847b;
   padding:.25rem .65rem; border-radius:4px; color:var(--muted); font-size:.87rem;
 }
 .map-pin { display:block; transform:rotate(45deg); width:.5rem; height:.5rem; border:1px solid var(--amber) }
-.scene-speaker { inset-inline:auto .75rem; inset-block:auto .75rem; color:var(--amber) }
 .spot {
   position:absolute; left:var(--x); top:var(--y); transform:translate(-50%,-50%);
   background:#132026ed; border-color:#e8ba7d; border-radius:99px; white-space:nowrap;
@@ -163,3 +162,31 @@ blockquote { margin:0 0 .6rem; font-size:1.3rem; color:var(--amber) }
   .confidence label { flex-basis:100% }
 }
 :root[data-still=true] *, :root[data-still=true] *::before, :root[data-still=true] *::after { animation:none !important; scroll-behavior:auto !important }
+
+.dialogue .speaker {
+  gap: .8rem;
+  color: var(--speaker-accent);
+  margin-block-end: .8rem;
+}
+.dialogue .speaker canvas {
+  width: 64px; height: 64px;
+  border: 2px solid var(--speaker-accent);
+}
+.dialogue .speaker h1 { font-size: 1.33rem }
+.dialogue .speaker p { color: var(--muted); font-size: .88rem }
+.dialogue .speech {
+  border-inline-start: 3px solid var(--speaker-accent);
+  padding-inline-start: .8rem;
+}
+.case-recap {
+  padding-block: .85rem;
+  border-block-end: 1px solid var(--frame);
+  max-width: 74ch;
+}
+.case-recap h2 { margin-block-end: .5rem }
+.case-recap dl { display: grid; gap: .65rem }
+.case-recap dt { color: var(--amber); font-weight: bold }
+.case-recap dd { margin: 0 }
+.feedback { border-block-end: 1px solid var(--frame); padding-block: .65rem }
+.feedback h3 { color: var(--amber); margin-block-end: .2rem }
+.feedback + .hint { margin-block-start: .7rem }
