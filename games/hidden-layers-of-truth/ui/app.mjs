@@ -9,6 +9,7 @@ import { caseRecap, interpretationLabel, outcomes, summarize } from '../reflecti
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#overlay');
+const announcement = document.querySelector('#scene-announcement');
 const storage = {
   getItem: key => window.localStorage.getItem(key),
   setItem: (key, value) => window.localStorage.setItem(key, value),
@@ -73,17 +74,22 @@ function stage(node) {
     <canvas width="480" height="224" aria-hidden="true"></canvas>
     <div class="weather" aria-hidden="true"></div>
     <div class="stage-caption"><span class="map-pin" aria-hidden="true"></span>${sceneTransitions[state.sceneId] ?? locations[node.place]}</div>
+    ${spots.length ? `<div class="stage-actions" role="group" aria-label="شنوّة تنجّم تشوف">` : ''}
     ${spots.map(spot => {
       const seen = state.inspected.includes(spot.id);
-      return `<button class="spot${state.sceneId === 'intro' && !state.inspected.includes('phone') && spot.id === 'phone' ? ' first-clue' : ''}" data-action="inspect" data-id="${spot.id}" style="--x:${spot.x}%;--y:${spot.y}%"
-        ${seen ? 'disabled' : ''}><span aria-hidden="true">${seen ? '✓' : '+'}</span>${spot.label}</button>`;
+      const required = node.required.includes(spot.id);
+      return `<button class="spot${state.sceneId === 'intro' && !state.inspected.includes('phone') && spot.id === 'phone' ? ' first-clue' : ''}"
+        data-action="inspect" data-id="${spot.id}" data-required="${required}" style="--x:${spot.x}%;--y:${spot.y}%"
+        aria-label="${spot.label}${seen ? '، تفرّجت فيها' : required ? '، لازم تشوفها باش تكمّل' : ''}"
+        ${seen ? 'disabled' : ''}><span aria-hidden="true">${seen ? '✓' : required ? '◆' : '+'}</span>${spot.label}</button>`;
     }).join('')}
+    ${spots.length ? '</div>' : ''}
   </div>`;
 }
 
 function soundButton() {
   return `<button data-action="sound" class="sound-toggle" aria-label="الموسيقى" aria-pressed="${settings.music}">
-    <span aria-hidden="true">♫</span><span data-sound-label>${settings.music ? 'الموسيقى شاعلة' : 'الموسيقى طافية'}</span>
+    <span aria-hidden="true">♫</span><span data-sound-label>${settings.music ? 'الصوت شاعل' : 'الصوت طافي'}</span>
   </button>`;
 }
 
@@ -91,7 +97,7 @@ function updateSoundButton() {
   const button = app.querySelector('[data-action="sound"]');
   if (!button) return;
   button.setAttribute('aria-pressed', settings.music);
-  button.querySelector('[data-sound-label]').textContent = settings.music ? 'الموسيقى شاعلة' : 'الموسيقى طافية';
+  button.querySelector('[data-sound-label]').textContent = settings.music ? 'الصوت شاعل' : 'الصوت طافي';
 }
 
 function splash() {
@@ -158,7 +164,7 @@ function dialogue(beat, closing) {
   const [name, , , , role, accent] = cast[beat.speaker];
   const byMessage = state.sceneId === 'intro' && state.hotspot === 'inbox' && beat.speaker === 'lina';
   return `<section class="story-panel dialogue" aria-labelledby="scene-title" style="--speaker-accent:${accent}">
-    <div class="speaker" data-speaker="${beat.speaker}" aria-live="polite" aria-atomic="true">
+    <div class="speaker" data-speaker="${beat.speaker}">
       <canvas width="48" height="48" aria-hidden="true"></canvas>
       <div><h1 tabindex="-1" id="scene-title">${name}</h1><p>${byMessage ? 'ميساج من لينا' : role}</p></div>
     </div>
@@ -169,11 +175,14 @@ function dialogue(beat, closing) {
 }
 
 function investigation(node) {
-  const ready = node.required.every(id => state.inspected.includes(id));
+  const remaining = node.spots.filter(spot => node.required.includes(spot.id) && !state.inspected.includes(spot.id));
+  const ready = remaining.length === 0;
   return `<section class="story-panel">
     <h1 class="sr-only" id="scene-title" tabindex="-1">${locations[node.place]}</h1>
     <p class="line">${node.prompt}</p>
-    ${node.next ? `<button class="primary next" data-action="leave" ${ready ? '' : 'disabled'}>${node.exit} <span aria-hidden="true">←</span></button>` : ''}
+    ${ready ? '' : `<p class="investigation-progress" id="investigation-progress"><span aria-hidden="true">◆</span>
+      مازال يلزمك تشوف ${remaining.map(spot => spot.label).join('، ')}.</p>`}
+    ${node.next ? `<button class="primary next" data-action="leave" ${ready ? '' : 'disabled aria-describedby="investigation-progress"'}>${node.exit} <span aria-hidden="true">←</span></button>` : ''}
   </section>`;
 }
 
@@ -258,8 +267,8 @@ function animateStage(canvas, node, beat, from) {
   const to = position(node, state);
   const sceneId = state.sceneId;
   const portrait = beat ? app.querySelector('.speaker canvas') : null;
-  const paint = (x, motion = 0) => {
-    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion);
+  const paint = (x, motion = 0, stride = 0) => {
+    drawScene(canvas, node.place, sceneId, beat?.speaker, x, motion, stride);
     if (portrait) drawPortrait(portrait, beat.speaker, beat.mood, motion);
   };
   const previous = from ? position(node, from) : to;
@@ -280,7 +289,8 @@ function animateStage(canvas, node, beat, from) {
     if (frame !== lastFrame) {
       lastFrame = frame;
       const talking = beat && elapsed < Math.min(3400, Math.max(1050, beat.text.length * 22));
-      paint(Math.round(previous + (to - previous) * walking), talking ? frame + 1 : 0);
+      const stride = previous !== to && walking < 1 ? [0, 3, 0, -3][frame % 4] : 0;
+      paint(Math.round(previous + (to - previous) * walking), talking ? frame + 1 : 0, stride);
       if (walking === 1 && !talking) return;
     }
     walkFrame = requestAnimationFrame(step);
@@ -293,6 +303,7 @@ function render(focus, from) {
   finishTyping();
   cancelAnimationFrame(walkFrame);
   if (view !== 'game') {
+    announcement.textContent = '';
     setSceneMusic(view === 'splash' ? 'title' : 'street');
     app.innerHTML = view === 'splash' ? splash() : gameHeader() + chapterMenu();
     drawScene(app.querySelector('canvas'), 'street', view);
@@ -308,11 +319,19 @@ function render(focus, from) {
     : node.kind === 'explore' ? investigation(node) : node.kind === 'decision' ? decision(node) : finish();
   app.innerHTML = gameHeader() + `<main class="game">${stage(node)}${body}
   ${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}</main>`;
+  announcement.textContent = beat ? `${cast[beat.speaker][0]}. ${beat.text}` : '';
   animateStage(app.querySelector('.stage canvas'), node, beat, from);
   if (beat && !settings.instantText && document.documentElement.dataset.still !== 'true') typeLine(beat.text);
   let activeControl = '#scene-title';
   if (beat) activeControl = '[data-action="advance"]';
-  else if (node.kind === 'explore') activeControl = app.querySelector('.first-clue') ? '.first-clue' : '[data-action="inspect"]:not(:disabled)';
+  else if (node.kind === 'explore') {
+    activeControl = [
+      '.first-clue',
+      '[data-required="true"]:not(:disabled)',
+      '[data-action="leave"]:not(:disabled)',
+      '[data-action="inspect"]:not(:disabled)',
+    ].find(selector => app.querySelector(selector)) ?? activeControl;
+  }
   const target = (focus ? app.querySelector(focus) : null) ?? app.querySelector(activeControl) ?? app.querySelector('#scene-title');
   target?.focus({ preventScroll: true });
   const bounds = target?.getBoundingClientRect();
@@ -437,12 +456,7 @@ document.addEventListener('click', event => {
       break;
     case 'inspect': dispatch({ type: 'inspect', id: control.dataset.id }, '[data-action="advance"]'); break;
     case 'advance':
-      if (!finishTyping()) {
-        const leavingDialogue = state.beatIndex + 1 === currentBeats(state).length;
-        const previousHotspot = state.hotspot;
-        dispatch({ type: 'advance' }, leavingDialogue && previousHotspot
-          ? '[data-action="inspect"]:not(:disabled), [data-action="leave"]:not(:disabled)' : undefined);
-      }
+      if (!finishTyping()) dispatch({ type: 'advance' });
       break;
     case 'leave': dispatch({ type: 'leave' }); break;
   }

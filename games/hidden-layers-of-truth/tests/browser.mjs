@@ -58,6 +58,21 @@ try {
         await click(action('advance'));
       }
     };
+    const assertHotspotsSeparate = async () => {
+      const spots = await page.locator('.stage-actions button').evaluateAll(buttons => buttons.map(button => {
+        const { top, bottom, left, right, width, height } = button.getBoundingClientRect();
+        return { top, bottom, left, right, width, height };
+      }));
+      const stage = await page.locator('.stage').boundingBox();
+      for (const [index, rect] of spots.entries()) {
+        assert(rect.width >= 44 && rect.height >= 44);
+        assert(rect.left >= stage.x && rect.right <= stage.x + stage.width);
+        assert(rect.top >= stage.y && rect.bottom <= stage.y + stage.height);
+        for (const other of spots.slice(index + 1)) {
+          assert(rect.right <= other.left || other.right <= rect.left || rect.bottom <= other.top || other.bottom <= rect.top);
+        }
+      }
+    };
     const inspect = async id => {
       const spot = page.locator(`[data-action="inspect"][data-id="${id}"]`);
       const box = await spot.boundingBox();
@@ -157,6 +172,9 @@ try {
     }
     await capture('intro');
     assert.equal(await action('leave').isDisabled(), true);
+    assert.equal(await page.locator('[data-required=true]').count(), 3);
+    await assertHotspotsSeparate();
+    assert.match(await page.locator('#investigation-progress').innerText(), /مازال يلزمك تشوف/);
     if (!mobile) {
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       await page.locator('[data-id=laptop]').focus();
@@ -174,11 +192,16 @@ try {
     await click(page.locator('[data-id="phone"]'));
     if (!mobile) await hear(53);
     await drain();
+    assert.equal(await page.locator('[data-id="inbox"]').evaluate(el => el === document.activeElement), true);
+    assert.match(await page.locator('#investigation-progress').innerText(), /ميساج لينا/);
     await click(page.locator('[data-id="inbox"]'));
     assert.match(await page.locator('#animated-text').innerText(), /ما تبعثش تقرير التبرّعات الليلة/);
+    assert.match(await page.locator('#scene-announcement').innerText(), /^لينا\./);
     await click(action('advance'));
     assert.match(await page.locator('#animated-text').innerText(), /بعثتلها.*لينا قاعدة تكتب.*ما وصلني حتى جواب/);
     await drain();
+    assert.equal(await action('leave').evaluate(el => el === document.activeElement), true);
+    assert.equal(await page.locator('#investigation-progress').count(), 0);
     await click(action('leave'));
     await choose('exclude', 72);
     assert.match(await page.locator('#animated-text').innerText(), /نهار الجمعة الصباح/);
@@ -193,6 +216,7 @@ try {
     await inspect('folder');
     await click(action('leave'));
     await choose('missing', 35);
+    await assertHotspotsSeparate();
 
     await click(action('journal'));
     assert.equal(await panel.locator('[data-evidence=versions]').count(), 1);

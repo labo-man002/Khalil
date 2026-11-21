@@ -195,18 +195,25 @@ dialog .toolbar, dialog p + button { margin-top:.7rem }
 .judgments small { display:block; color:var(--muted) }
 blockquote { margin:0 0 .6rem; font-size:1.3rem; color:var(--amber) }
 
-@media (max-width: 600px) {
+.stage-actions { display:contents }
+@media (max-width: 700px) {
   .stage { aspect-ratio:1.57 }
-  .spot { --mobile-y:var(--y); top:var(--mobile-y); padding-inline:.45rem; font-size:.76rem; gap:.25rem }
-  .stage:has([data-id="inbox"]) [data-id="phone"] { --mobile-y:78% }
-  .stage:has([data-id="inbox"]) [data-id="inbox"] { --mobile-y:78% }
-  .stage [data-id="records"] { --mobile-y:74% }
-  .stage [data-id="witnesses"] { --mobile-y:77%; left:82% }
-  .stage [data-id="youssef"] { --mobile-y:41%; left:68% }
-  .stage [data-id="adam"]:not(:only-of-type) { --mobile-y:57% }
+  .stage:has(.stage-actions) { aspect-ratio:auto }
+  .stage:has(.stage-actions) canvas { height:auto; aspect-ratio:1.57 }
+  .stage:has(.stage-actions) .weather { inset-block-end:auto; height:auto; aspect-ratio:1.57 }
+  .stage-actions {
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.45rem;
+    position:relative; padding:.6rem; background:var(--panel); border-block-start:1px solid var(--frame);
+  }
+  .stage-actions .spot {
+    position:static; transform:none; min-width:0; text-align:start; justify-content:flex-start;
+    white-space:normal; border-radius:6px; padding-inline:.6rem; font-size:.82rem; box-shadow:none;
+  }
+}
+@media (max-width: 480px) {
+  .top { display:grid; gap:.35rem }
 }
 @media (max-width: 370px) {
-  .top { flex-wrap:wrap }
   .confidence { flex-wrap:wrap; gap:.1rem .55rem }
   .confidence label { flex-basis:100% }
 }
@@ -261,3 +268,10 @@ blockquote { margin:0 0 .6rem; font-size:1.3rem; color:var(--amber) }
   mix-blend-mode:screen;
   animation:street-halo 4.2s ease-in-out infinite alternate;
 }
+
+.investigation-progress {
+  display:flex; align-items:baseline; gap:.5rem; color:var(--muted);
+  font-size:.91rem; margin-block:.55rem 0;
+}
+.investigation-progress span { color:var(--amber) }
+.spot[data-required=false]:not(:disabled) { border-color:#82958e }

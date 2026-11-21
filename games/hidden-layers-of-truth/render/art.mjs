@@ -179,7 +179,7 @@ function office(p) {
   noise(1,1,478,140,350,'#f4d4a51b');
 }
 
-function street(p) {
+function street(p, opening = false) {
   const {box, poly, glow, noise} = p;
   skyline(p,0,0,W,148);
   floor(p,148,'#25333d','#182631');
@@ -200,6 +200,20 @@ function street(p) {
   glow(402,125,130,'#f1a65738');
   noise(0,169,W,54,500,'#d4a57335');
   for(let i=0;i<14;i++) box(165-i*4,169+i*4,12+i%3*4,1,'#d8ad7845');
+  if (opening) {
+    // A pool of streetlight broken up by the wet paving.
+    poly([[243,158],[252,158],[281,224],[204,224]], '#d1975331');
+    for (let row = 0; row < 16; row++) {
+      const width = 6 + row * 3;
+      const x = 247 - width / 2 + (row * 7 % 9) - 4;
+      box(x, 159 + row * 4, width, row % 3 === 0 ? 2 : 1, row % 2 ? '#ffc17862' : '#8bb9be45');
+    }
+    box(306,73,76,12,'#372d2c');
+    box(308,73,72,1,'#c48f61');
+    for (let x = 313; x < 376; x += 6) box(x,77,2,4,'#eab377');
+    glow(339,77,44,'#f4a55e37');
+    poly([[0,34],[98,51],[199,56],[199,57],[97,52],[0,35]],'#151b235e');
+  }
 }
 
 function cafe(p) {
@@ -233,7 +247,15 @@ function cafe(p) {
   noise(0,40,480,136,460,'#ffd09b23');
 }
 
-function sprite(ctx,name,x,y,face=1,muted=false,motion=0) {
+const gestures = {
+  sami: [0, 1, 3, 3, 1, 0, 0, 0],
+  lina: [0, 2, 6, 5, 3, 2, 0, 0],
+  adam: [0, 0, 1, 2, 2, 0, 0, 0],
+  youssef: [0, 3, 6, 7, 4, 2, 1, 0],
+  maryam: [0, 1, 3, 4, 3, 1, 0, 0],
+};
+
+function sprite(ctx, name, x, y, face, muted, motion, stride) {
   const [,shirt,skin,hair] = cast[name];
   ctx.save();
   ctx.globalAlpha = muted ? 0.60 : 1;
@@ -241,15 +263,22 @@ function sprite(ctx,name,x,y,face=1,muted=false,motion=0) {
   ctx.scale(face,1);
   const {box,poly} = painter(ctx);
   box(-13,0,26,3,'#15171d58');
-  box(-8,-20,6,18,'#1a242c');
-  box(3,-20,6,18,'#222d33');
-  box(-10,-3,9,4,'#10191e');
-  box(3,-3,11,4,'#131c20');
+  poly([[-8,-20],[-2,-20],[-1 + stride,-2],[-7 + stride,-2]],'#1a242c');
+  poly([[3,-20],[9,-20],[9 - stride,-2],[3 - stride,-2]],'#222d33');
+  box(-10 + stride,-3,9,4,'#10191e');
+  box(3 - stride,-3,11,4,'#131c20');
+
+  const pose = motion > 0 ? Math.floor(motion / 2) % 8 : 0;
+  const bob = pose >= 2 && pose <= 5 ? -1 : 0;
+  ctx.translate(0,bob);
   poly([[-8,-38],[7,-38],[12,-30],[12,-15],[-11,-15],[-12,-30]],shirt);
   box(-10,-30,2,13,'#ffffff20');
-  const arm = motion % 2 ? 3 : 0;
-  box(8,-25-arm,4,11,skin);
-  if (arm) box(11,-25-arm,4,3,skin);
+  const hand = (gestures[name] ?? gestures.sami)[pose];
+  if (hand) {
+    poly([[8,-26],[11,-27],[13 + hand,-25 - hand],[12 + hand,-22 - hand],[10,-22]],skin);
+  } else {
+    box(8,-25,4,11,skin);
+  }
 
   box(-5,-51,13,14,skin);
   box(-7,-48,3,8,skin);
@@ -257,39 +286,56 @@ function sprite(ctx,name,x,y,face=1,muted=false,motion=0) {
   box(-7,-51,4,9,hair);
   if (name==='maryam' || name==='lina' || name==='amina') box(-7,-47,4,12,hair);
   if (name==='youssef') box(3,-43,5,4,hair);
+  if (name==='adam') box(4,-47,5,1,'#263136');
   box(5,-47,2,2,'#13181e');
-  if (motion) box(5,-41,3,motion % 2 ? 2 : 1,'#673c38');
+  if (motion % 3 === 1) box(5,-41,3,2,'#673c38');
+  else box(5,-40,3,1,'#673c3866');
   ctx.restore();
 }
 
 const scenes = {room, office, street, cafe};
+const sceneLayers = new Map();
 
-export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'room' ? 249 : 145, motion = 0) {
+function sceneLayer(canvas, key, paint) {
+  if (sceneLayers.has(key)) return sceneLayers.get(key);
+  const layer = canvas.ownerDocument.createElement('canvas');
+  layer.width = W;
+  layer.height = H;
+  const ctx = layer.getContext('2d');
+  paint(painter(ctx), ctx);
+  sceneLayers.set(key, layer);
+  return layer;
+}
+
+export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'room' ? 249 : 145, motion = 0, stride = 0) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
-  const p = painter(ctx);
-  scenes[place](p);
+  const opening = sceneId === 'splash';
+  const background = sceneLayer(canvas, opening ? 'opening' : place, p => scenes[place](p, opening));
+  const atmosphere = sceneLayer(canvas, 'atmosphere', (p, layer) => {
+    p.noise(0,0,W,H,2000,'#d5cfba0c');
+    const shade = layer.createRadialGradient(W/2,H/2,66,W/2,H/2,260);
+    shade.addColorStop(0,'transparent');
+    shade.addColorStop(1,'#0b141b96');
+    p.box(0,0,W,H,shade);
+  });
+  ctx.drawImage(background, 0, 0);
+
   const featured = {
     room: sceneId === 'home' || sceneId === 'mirror' || speaker === 'maryam' ? [['maryam',307,169,-1]] : [],
     office: [['lina',237,170,1],['adam',270,173,-1],['youssef',321,177,-1],['hala',415,175,-1],['moncef',448,177,-1]],
-    street: [['amina',212,170,-1]],
+    street: opening ? [] : [['amina',212,170,-1]],
     cafe: [['adam',351,159,-1]],
   };
   const people = [...featured[place], ['sami',samiX,189,1]];
-  for (const [name, x, y, face] of people) {
-    const active = name === speaker;
-    const bob = motion && active ? motion % 3 - 1 : 0;
-    sprite(ctx, name, x, y + bob, face, speaker && !active, active ? motion : 0);
-  }
-  p.noise(0,0,W,H,2000,'#d5cfba0c');
-  const shade = ctx.createRadialGradient(W/2,H/2,66,W/2,H/2,260);
-  shade.addColorStop(0,'transparent');
-  shade.addColorStop(1,'#0b141b96');
-  p.box(0,0,W,H,shade);
   const active = people.find(person => person[0] === speaker);
+  for (const [name, x, y, face] of people) {
+    sprite(ctx, name, x, y, face, active && name !== speaker, name === speaker ? motion : 0, name === 'sami' ? stride : 0);
+  }
+  ctx.drawImage(atmosphere, 0, 0);
   if (active) {
-    const [name,x,feet] = active;
-    const y = feet + (motion ? motion % 3 - 1 : 0);
+    const [name,x,y] = active;
+    const p = painter(ctx);
     p.poly([[x,y-59],[x-5,y-65],[x-5,y-71],[x+5,y-71],[x+5,y-65]], '#111c24');
     p.poly([[x,y-61],[x-3,y-66],[x-3,y-69],[x+3,y-69],[x+3,y-66]], cast[name][5]);
   }
