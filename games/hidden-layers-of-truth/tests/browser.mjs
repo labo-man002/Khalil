@@ -24,6 +24,18 @@ const host = `http://127.0.0.1:${server.address().port}`;
 const route = host + prefix + 'hidden-layers-of-truth/';
 const screenshotPath = process.env.GAME_SCREENSHOTS_DIR;
 if (screenshotPath) await mkdir(screenshotPath, { recursive: true });
+
+const verseAudioPath = process.env.GAME_VERSE_AUDIO;
+const verseAudio = verseAudioPath
+  ? { path: verseAudioPath, contentType: 'audio/mpeg' }
+  : {
+      // Six seconds of silent PCM at 8 kHz, so media lifecycle checks run without an external request.
+      body: Buffer.concat([
+        Buffer.from('52494646a4bb000057415645666d74201000000001000100401f0000401f0000010008006461746180bb0000', 'hex'),
+        Buffer.alloc(48000, 128),
+      ]),
+      contentType: 'audio/wav',
+    };
 let browser;
 
 try {
@@ -105,7 +117,34 @@ try {
       return Math.max(bins[bin - 1], bins[bin], bins[bin + 1]) > -50;
     }, midi, { timeout: 4000 });
 
+    const waitForGameSound = audible => page.waitForFunction(expected => {
+      const meter = window.musicMeter;
+      if (!meter || meter.context.state !== 'running') return false;
+      const samples = new Float32Array(meter.fftSize);
+      meter.getFloatTimeDomainData(samples);
+      return expected
+        ? samples.some(sample => Math.abs(sample) > 0.008)
+        : samples.every(sample => Math.abs(sample) < 0.001);
+    }, audible, { timeout: 4000 });
+
+    const playVerse = async control => {
+      await click(control);
+      await page.waitForFunction(() => window.versePlayer?.currentTime > 0.12);
+      await waitForGameSound(false);
+    };
+
     await page.addInitScript(() => {
+      const play = HTMLMediaElement.prototype.play;
+      HTMLMediaElement.prototype.play = function (...args) {
+        window.versePlayer = this;
+        return play.apply(this, args);
+      };
+      const start = AudioBufferSourceNode.prototype.start;
+      window.ambientLoops = 0;
+      AudioBufferSourceNode.prototype.start = function (...args) {
+        if (this.loop) window.ambientLoops++;
+        return start.apply(this, args);
+      };
       const connect = AudioNode.prototype.connect;
       AudioNode.prototype.connect = function (target, ...args) {
         if (target === this.context.destination) {
@@ -158,6 +197,16 @@ try {
     assert.equal(await page.locator('.chapter-card').count(), 1);
     assert.equal(await page.locator('.chapter-menu .notice').count(), 0);
     if (!quietStart) await hear(62);
+    if (!mobile) {
+      await page.route('https://everyayah.com/**/049012.mp3', route => route.fulfill(verseAudio));
+      await click(action('about'));
+      await click(action('source', panel));
+      await playVerse(action('recite', panel));
+      await page.keyboard.press('Escape');
+      await panel.waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => window.versePlayer.paused);
+      await waitForGameSound(true);
+    }
     await click(action('splash'));
     assert.equal(await page.locator('.chapter-card').count(), 0);
     await click(action('enter'));
@@ -210,7 +259,10 @@ try {
       return window.scrollY;
     }), 0);
     assert.match(await page.locator('#investigation-progress').innerText(), /مازال يلزمك تشوف/);
+    let roomLoops;
     if (!mobile) {
+      roomLoops = await page.evaluate(() => window.ambientLoops);
+      assert(roomLoops > 0, 'the room has a running ambience loop');
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       const stage = page.locator('.stage canvas');
       await click(page.locator('[data-id=window]'));
@@ -240,7 +292,11 @@ try {
       await page.keyboard.press('PageDown');
       await page.waitForFunction(() => document.querySelector('.dialogue-copy').scrollTop > 0);
     }
-    if (!mobile) await hear(53);
+    if (!mobile) {
+      await hear(53);
+      assert.equal(await page.evaluate(() => window.ambientLoops), roomLoops,
+        'looking out the window and changing score after reading the phone keep the same ambience loop');
+    }
     await click(action('advance'));
     assert.match(await page.locator('.phone-story figcaption').innerText(), /آدم مع يوسف/);
     await drain();
@@ -395,27 +451,11 @@ try {
     assert.equal(await page.locator('.mirror-messages article').count(), 2);
     assert.match(await page.locator('.mirror-messages').innerText(), /طمّنّي عليك/);
     assert.match(await page.locator('.lesson blockquote').innerText(), /يَا أَيُّهَا.*وَلَا تَجَسَّسُوا.*تَوَّابٌ رَحِيمٌ/);
-    if (process.env.GAME_VERSE_AUDIO && !mobile) {
-      await page.route('https://everyayah.com/**/049012.mp3', route => route.fulfill({
-        path: process.env.GAME_VERSE_AUDIO, contentType: 'audio/mpeg',
-      }));
-      await page.evaluate(() => {
-        const play = HTMLMediaElement.prototype.play;
-        HTMLMediaElement.prototype.play = function () {
-          window.versePlayer = this;
-          return play.call(this);
-        };
-      });
-      await click(action('recite'));
-      await page.waitForFunction(() => window.versePlayer?.currentTime > 0.12);
-      await page.waitForFunction(() => {
-        const meter = window.musicMeter;
-        const samples = new Float32Array(meter.fftSize);
-        meter.getFloatTimeDomainData(samples);
-        return samples.every(sample => Math.abs(sample) < 0.001);
-      });
+    if (!mobile) {
+      await playVerse(action('recite'));
       await click(endingTab('case'));
       assert.equal(await page.evaluate(() => window.versePlayer.paused), true);
+      await waitForGameSound(true);
     }
     await click(endingTab('case'));
     assert.equal(await page.locator('#ending-verse').isVisible(), false);

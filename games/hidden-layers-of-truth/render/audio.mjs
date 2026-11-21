@@ -1,4 +1,4 @@
-// Four bars per loop. Negative melody offsets are rests.
+// Four-bar themes with an answering phrase on the second pass. Negative offsets are rests.
 const cues = {
   title: { tonic: 45, beat: .84, bass: [0, 3, -2, -5], color: 'keys', space: .28, counter: [19, 15, 14, 19], melody: [24, -1, 19, 15, 23, -1, 19, 17, 24, 26, 27, -1, 19, 17, 15, -1] },
   street: { tonic: 50, beat: .78, bass: [0, -3, -5, -2], color: 'keys', melody: [12, -1, 15, 19, 17, -1, 15, 12, 10, 12, -1, 8, 10, -1, 14, -1] },
@@ -9,6 +9,18 @@ const cues = {
   admission: { tonic: 48, beat: .92, bass: [0, 0, -3, -5], color: 'bow', space: .19, melody: [19, -1, -1, 15, 17, -1, 15, -1, 10, -1, -1, 12, 14, -1, 12, -1] },
   reveal: { tonic: 60, beat: .72, bass: [0, -5, -2, 0], color: 'bell', space: .23, melody: [19, 16, 24, -1, 24, -1, 21, 19, 16, -1, 17, 19, 16, 14, 12, -1] },
   end: { tonic: 57, beat: .94, bass: [0, -5, -3, 0], color: 'keys', space: .22, counter: [16, 19, 16, 7], melody: [24, 19, 16, -1, 17, -1, 14, 17, 16, -1, 12, 9, 7, -1, 12, -1] },
+};
+
+const arrangements = {
+  title: { thirds: [3, 4, 4, 4], answer: [12, 16, 14, 11] },
+  street: { thirds: [0, 0, 0, 0], answer: [7, 12, 10, 14] },
+  room: { answer: [19, 12, 15, 11], swing: .07 },
+  office: { lift: [1.5, 3.25], swing: .035 },
+  cafe: { thirds: [4, 4, 3, 4], lift: [.65, 1.65, 3.3], answer: [19, 16, 19, 17], swing: .13 },
+  doubt: { lift: [.65, 2.5], swing: .085 },
+  admission: { answer: [12, 15, 10, 12] },
+  reveal: { thirds: [4, 4, 3, 4], answer: [12, 16, 14, 19] },
+  end: { thirds: [3, 4, 4, 3], answer: [12, 14, 16, 12] },
 };
 
 const instruments = {
@@ -24,6 +36,8 @@ let master;
 let reverb;
 let softNoise;
 let locationSound;
+let ambience;
+let nearWindow = false;
 let waves;
 let revision = 0;
 let cueName = 'street';
@@ -77,28 +91,81 @@ function stopScore() {
   score = undefined;
 }
 
-function playAtmosphere(bus, time, bar) {
-  if (locationSound === 'cafe' && bar === 2) {
-    note(bus, time + .7, 90, .29, .038, 'bell', .012);
-    note(bus, time + .82, 97, .18, .028, 'sine', .01);
-  } else if (locationSound === 'office' && bar === 1) {
-    note(bus, time + .44, 40, .19, .042, 'triangle', .013);
-    note(bus, time + .9, 45, .12, .034, 'triangle', .012);
+const atmosphere = {
+  street: { level: .29, cutoff: 4300, pan: -.12 },
+  room: { level: .12, cutoff: 1320, pan: .19 },
+  cafe: { level: .085, cutoff: 760, pan: -.18 },
+  office: { level: .065, cutoff: 570, pan: .12 },
+};
+
+function panTo(bus, position) {
+  if (!context.createStereoPanner || position === 0) return bus;
+  const pan = context.createStereoPanner();
+  pan.pan.value = position;
+  pan.connect(bus);
+  return pan;
+}
+
+function tuneAtmosphere() {
+  if (!ambience) return;
+  const profile = atmosphere[ambience.place];
+  const close = ambience.place === 'room' && nearWindow;
+  const now = context.currentTime;
+  ambience.level.gain.setTargetAtTime(close ? .40 : profile.level, now, .21);
+  ambience.filter.frequency.setTargetAtTime(close ? 3850 : profile.cutoff, now, .18);
+}
+
+function syncAtmosphere() {
+  const place = enabled && !document.hidden ? locationSound : undefined;
+  if (ambience?.place === place) return;
+  const previous = ambience;
+  ambience = undefined;
+  if (previous) {
+    clearTimeout(previous.timer);
+    previous.level.gain.setTargetAtTime(0, context.currentTime, .14);
+    previous.bed.stop(context.currentTime + .8);
+    setTimeout(() => previous.pan.disconnect(), 850);
   }
-  if (locationSound !== 'street' && locationSound !== 'room') return;
-  const rain = context.createBufferSource();
-  const gain = context.createGain();
-  rain.buffer = softNoise;
-  gain.gain.setValueAtTime(0, time);
-  gain.gain.linearRampToValueAtTime(locationSound === 'street' ? .04 : .016, time + .3);
-  gain.gain.linearRampToValueAtTime(0, time + 2.35);
-  rain.connect(gain).connect(bus);
-  rain.start(time);
+  const profile = atmosphere[place];
+  if (!profile) return;
+
+  const bed = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const level = context.createGain();
+  const pan = panTo(master, profile.pan);
+  bed.buffer = softNoise;
+  bed.loop = true;
+  filter.type = 'lowpass';
+  filter.frequency.value = profile.cutoff;
+  level.gain.value = 0;
+  bed.connect(filter).connect(level).connect(pan);
+  bed.start();
+  const layer = { place, level, filter, bed, pan: pan === master ? level : pan };
+  ambience = layer;
+  tuneAtmosphere();
+
+  function accent() {
+    if (ambience !== layer) return;
+    const time = context.currentTime;
+    // Let the room own its timing instead of syncing to the music.
+    if (place === 'cafe') {
+      note(level, time, 90, .21, .30, 'bell', .01);
+      texture(time + .09, .19, .36, 1900, 'bandpass', level);
+    } else if (place === 'office') {
+      texture(time, .20, .40, 970, 'bandpass', level);
+      note(level, time + .14, 44, .11, .24, 'triangle', .012);
+    } else if (place === 'street' || nearWindow) {
+      texture(time, .38, .26, 1900, 'bandpass', level);
+    }
+    layer.timer = setTimeout(accent, 1750 + Math.random() * 3000);
+  }
+  layer.timer = setTimeout(accent, 950);
 }
 
 function startScore() {
   const { tonic, beat, bass, melody, color, percussion = [], space = .10, counter } = cues[cueName];
   const { attack, length, level, chord, echo } = instruments[color];
+  const { thirds, swing = 0, lift = [], answer } = arrangements[cueName];
   const bus = context.createGain();
   bus.gain.value = 0;
   bus.connect(master);
@@ -108,25 +175,35 @@ function startScore() {
   bus.gain.setTargetAtTime(1, context.currentTime, .06);
   score = { bus, reverbSend, timer: null };
   let nextBar = context.currentTime + .025;
-  let index = 0;
+  let bar = 0;
   function plan() {
     if (nextBar < context.currentTime) nextBar = context.currentTime + .025;
     while (nextBar < context.currentTime + .22) {
+      const index = bar % bass.length;
+      const reply = bar >= bass.length;
       const root = tonic + bass[index];
-      playAtmosphere(bus, nextBar, index);
-      note(bus, nextBar, root - 12, beat * 3.9, .10, 'triangle', .14);
-      chord.forEach((interval, voice) =>
-        note(bus, nextBar + voice * .05, root + interval, beat * 4.25, .15 / chord.length, 'sine', .20));
+      const bassLength = lift.length ? beat * 1.35 : beat * 3.65;
+      note(bus, nextBar, root - 12, bassLength, .094, 'triangle', .09);
+      if (lift.length) note(bus, nextBar + beat * 2.15, root - 5, beat * 1.25, .055, 'triangle', .065);
+      const voicing = thirds ? [thirds[index], 7, 12] : chord;
+      voicing.forEach((interval, voice) =>
+        note(bus, nextBar + voice * .066, root + interval, beat * 3.95, .125 / voicing.length, 'sine', .19));
       if (counter) note(bus, nextBar + beat * 2.5, tonic + counter[index], beat * 1.65, .062, 'keys', .035);
-      for (const pulse of percussion) note(bus, nextBar + pulse * beat, root - 18, .19, .17, 'sine', .008);
+      for (const pulse of percussion) note(bus, nextBar + pulse * beat, root - 18, .17, .13, 'sine', .008);
+      for (const accent of lift) texture(nextBar + accent * beat, .105, .073, 2300, 'bandpass', bus);
+      if (reply && answer) {
+        note(bus, nextBar + beat * 1.55, tonic + answer[index], beat * .95, .080, 'pluck', .02);
+      }
       for (let step = 0; step < 4; step++) {
         const offset = melody[index * 4 + step];
         if (offset < 0) continue;
-        const start = nextBar + step * beat;
-        note(bus, start, tonic + offset, beat * length, level, color, attack);
-        if (echo) note(bus, start + beat / 2, tonic + offset, beat * 1.45, level * echo, 'sine', .04);
+        const start = nextBar + (step + (step % 2 ? swing : 0)) * beat;
+        const emphasis = [1, .74, .89, .68][step];
+        const duration = beat * length * (reply && step === 3 ? .70 : 1);
+        note(bus, start, tonic + offset, duration, level * emphasis, color, Math.min(attack, duration * .4));
+        if (echo && !(reply && step % 2)) note(bus, start + beat / 2, tonic + offset, beat * 1.45, level * emphasis * echo, 'sine', .04);
       }
-      index = (index + 1) % bass.length;
+      bar = (bar + 1) % (bass.length * 2);
       nextBar += beat * 4;
     }
     score.timer = setTimeout(plan, 100);
@@ -136,9 +213,10 @@ function startScore() {
 
 export function setSceneMusic(name, place) {
   locationSound = place;
+  syncAtmosphere();
   if (cueName === name) return;
   cueName = name;
-  if (enabled) {
+  if (enabled && !document.hidden) {
     stopScore();
     startScore();
   }
@@ -172,23 +250,31 @@ export async function setAudio({ music, volume }) {
     volumeLevel = .59 * volume / 100;
     master.gain.setTargetAtTime(music && !listening ? volumeLevel : 0, context.currentTime, .07);
     if (!enabled) stopScore();
-    else if (!score) startScore();
+    else if (!score && !document.hidden) startScore();
+    syncAtmosphere();
     return true;
   } catch {
     return request !== revision;
   }
 }
 
-export function chime() {
+document.addEventListener('visibilitychange', () => {
   if (!enabled) return;
+  if (document.hidden) stopScore();
+  else if (!score) startScore();
+  syncAtmosphere();
+});
+
+export function chime() {
+  if (!enabled || listening) return;
   const now = context.currentTime;
   note(master, now, 81, .23, .11);
   note(master, now + .065, 86, .30, .075);
 }
 
-export function phoneBuzz() {
-  if (!enabled) return;
-  const now = context.currentTime;
+export function phoneBuzz(delay = 0) {
+  if (!enabled || listening) return;
+  const now = context.currentTime + delay;
   note(master, now, 45, .13, .17, 'pulse', .015);
   note(master, now + .19, 45, .12, .13, 'pulse', .015);
 }
@@ -203,7 +289,7 @@ export function setRecitationActive(active) {
   else master.gain.setTargetAtTime(enabled ? volumeLevel : 0, context.currentTime, .07);
 }
 
-function texture(time, duration, level, frequency, type) {
+function texture(time, duration, level, frequency, type, bus = master) {
   const noise = context.createBufferSource();
   const filter = context.createBiquadFilter();
   const envelope = context.createGain();
@@ -213,43 +299,47 @@ function texture(time, duration, level, frequency, type) {
   envelope.gain.setValueAtTime(.0001, time);
   envelope.gain.linearRampToValueAtTime(level, time + Math.min(.025, duration / 3));
   envelope.gain.exponentialRampToValueAtTime(.0001, time + duration);
-  noise.connect(filter).connect(envelope).connect(master);
+  noise.connect(filter).connect(envelope).connect(bus);
   noise.start(time, Math.random() * .7, duration);
 }
 
-export function sceneSound(action, place) {
-  if (!enabled || listening) return;
+let alternateStep = false;
+
+export function sceneSound(action, place, position = 0) {
+  if (!enabled || listening || document.hidden) return;
   const now = context.currentTime;
+  const bus = panTo(master, position);
+  if (bus !== master) setTimeout(() => bus.disconnect(), 1150);
   if (action === 'step') {
+    alternateStep = !alternateStep;
     const outside = place === 'street';
-    note(master, now, outside ? 33 : 37, .105, .14, 'triangle', .012);
-    texture(now, .15, outside ? .24 : .18, outside ? 1900 : 520, 'lowpass');
+    const floor = outside ? 31 : place === 'cafe' ? 38 : 35;
+    note(bus, now, floor + (alternateStep ? 0 : 3), .13, alternateStep ? .20 : .15, 'triangle', .011);
+    texture(now + .013, .14, .28, outside ? 2200 : 670, 'lowpass', bus);
+    if (outside) texture(now + .043, .105, .15, 2900, 'bandpass', bus);
   } else if (action === 'chair') {
-    texture(now, .38, .24, 640, 'bandpass');
-    note(master, now + .29, 39, .14, .16, 'triangle', .012);
+    texture(now, .45, .42, 620, 'bandpass', bus);
+    texture(now + .13, .22, .20, 1300, 'bandpass', bus);
+    note(bus, now + .31, 40, .17, .19, 'triangle', .015);
   } else if (action === 'cup') {
-    texture(now + .20, .35, .105, 1040, 'bandpass');
-    note(master, now + .72, 94, .23, .083, 'bell', .009);
-    note(master, now + .76, 101, .19, .049, 'sine', .013);
+    note(bus, now, 93, .18, .115, 'bell', .009);
+    texture(now + .24, .28, .19, 1160, 'bandpass', bus);
+    note(bus, now + .72, 94, .25, .12, 'bell', .009);
+    note(bus, now + .76, 101, .17, .07, 'sine', .013);
+  } else if (action === 'door') {
+    texture(now, .19, .23, 1200, 'bandpass', bus);
+    note(bus, now + .07, 93, .17, .085, 'bell', .01);
+    note(bus, now + .26, 36, .22, .16, 'triangle', .018);
+  } else if (action === 'paper') {
+    texture(now, .20, .45, 2550, 'bandpass', bus);
+    texture(now + .12, .17, .28, 3900, 'bandpass', bus);
+  } else if (action === 'tap') {
+    texture(now, .085, .24, 1750, 'bandpass', bus);
+    note(bus, now, 62, .066, .065, 'triangle', .009);
   }
 }
 
-let windowRain;
-
 export function setWindowRain(near) {
-  if (!context) return;
-  if (!windowRain) {
-    const rain = context.createBufferSource();
-    const filter = context.createBiquadFilter();
-    const gain = context.createGain();
-    rain.buffer = softNoise;
-    rain.loop = true;
-    filter.type = 'highpass';
-    filter.frequency.value = 440;
-    gain.gain.value = 0;
-    rain.connect(filter).connect(gain).connect(master);
-    rain.start();
-    windowRain = gain;
-  }
-  windowRain.gain.setTargetAtTime(near ? .48 : 0, context.currentTime, .18);
+  nearWindow = near;
+  tuneAtmosphere();
 }
