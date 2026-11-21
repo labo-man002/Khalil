@@ -305,8 +305,12 @@ blockquote { margin:0 0 .6rem; font-size:1.3rem; color:var(--amber) }
 .spot[data-required=false]:not(:disabled) { border-color:#82958e }
 
 /* Keep the scene in view while the player reads or investigates. */
-body.playing { overflow:hidden }
-.playing #app { display:grid; grid-template-rows:auto minmax(0,1fr); height:100dvh }
+html:has(body.playing), body.playing { height:100%; min-height:0; overflow:hidden }
+.playing #app {
+  position:fixed; inset:0; display:grid; grid-template-rows:auto minmax(0,1fr);
+  overflow:hidden;
+}
+.playing #scene-announcement { position:fixed; inset:0 auto auto 0 }
 .playing .top { width:100%; max-width:none }
 .play-layout {
   display:grid; grid-template-rows:minmax(0, min(46dvh, 430px)) minmax(0,1fr);

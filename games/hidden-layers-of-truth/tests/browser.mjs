@@ -184,7 +184,12 @@ try {
     assert.equal(await action('leave').isDisabled(), true);
     assert.equal(await page.locator('[data-required=true]').count(), 3);
     await assertHotspotsSeparate();
-    assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), true);
+    const shell = await page.locator('#app').boundingBox();
+    assert(Math.abs(shell.height - variant.viewport.height) <= 1);
+    assert.equal(await page.evaluate(() => {
+      window.scrollTo(0, 100);
+      return window.scrollY;
+    }), 0);
     assert.match(await page.locator('#investigation-progress').innerText(), /مازال يلزمك تشوف/);
     if (!mobile) {
       await page.emulateMedia({ reducedMotion: 'no-preference' });
