@@ -43,12 +43,24 @@ function updateMotion() {
 
 systemMotion.addEventListener('change', updateMotion);
 
+const paperHotspots = new Set(['folder', 'statement', 'annex']);
+const digitalHotspots = new Set(['laptop', 'phone', 'inbox', 'records']);
+
 function dispatch(event, focus) {
   const previous = state;
   const next = transition(state, event);
   if (next === state) return;
-  if (previous.sceneId === 'opening' && next.sceneId === 'intro') phoneBuzz();
-  else if (next.evidence.length > state.evidence.length) chime();
+  const node = chapter[next.sceneId];
+  if (previous.sceneId !== next.sceneId && ['intro', 'cafe', 'home'].includes(next.sceneId)) {
+    sceneSound('door', node.place, -.65);
+  }
+  if (previous.sceneId === 'opening' && next.sceneId === 'intro') phoneBuzz(.35);
+  else if (next.evidence.length > previous.evidence.length) chime();
+  if (event.type === 'inspect') {
+    const pan = stagePan(position(node, next));
+    if (paperHotspots.has(event.id)) sceneSound('paper', node.place, pan);
+    if (digitalHotspots.has(event.id)) sceneSound('tap', node.place, pan);
+  }
   state = next;
   events.push(event);
   notice = saveStory(storage, events) ? null : 'unsaved';
@@ -418,6 +430,10 @@ function position(node, current) {
   return spot ? Math.round(spot.x * 4.8) : node.place === 'room' ? 249 : 145;
 }
 
+function stagePan(x) {
+  return (x - 240) / 300;
+}
+
 function animateStage(canvas, node, beat, from, replayCup = false) {
   const to = position(node, state);
   const interaction = state.hotspot;
@@ -442,11 +458,11 @@ function animateStage(canvas, node, beat, from, replayCup = false) {
     if (portrait) drawPortrait(portrait, beat.speaker, beat.mood, motion);
   };
   const hasAtmosphere = ['room', 'street', 'cafe'].includes(node.place);
-  if (startsScene && sceneId === 'morning') sceneSound('chair');
+  if (startsScene && sceneId === 'morning') sceneSound('chair', node.place, .4);
   if (still || (!beat && previous === to && !hasAtmosphere)) {
     if (roomEntrance) sceneEntered = performance.now() - 1500;
-    if (enteringCup) sceneSound('cup');
-    if (still && distance) sceneSound('step', node.place);
+    if (enteringCup) sceneSound('cup', node.place, stagePan(to));
+    if (still && distance) sceneSound('step', node.place, stagePan(to));
     paint(to, 0, 0, 1500 + walkDuration);
     return;
   }
@@ -466,11 +482,11 @@ function animateStage(canvas, node, beat, from, replayCup = false) {
     const stepNumber = Math.floor(elapsed / 225);
     if (walking < 1 && stepNumber !== lastStep) {
       lastStep = stepNumber;
-      sceneSound('step', node.place);
+      sceneSound('step', node.place, stagePan(previous + (to - previous) * walking));
     }
     if (enteringCup && !cupPlayed && walking === 1) {
       cupPlayed = true;
-      sceneSound('cup');
+      sceneSound('cup', node.place, stagePan(to));
     }
     if (frame !== lastFrame) {
       lastFrame = frame;
@@ -577,7 +593,7 @@ function openPanel(name, contents) {
 }
 
 dialog.addEventListener('close', () => {
-  if (dialog.contains(recitation)) stopRecitation();
+  if (recitation && dialog.contains(recitation.control)) stopRecitation();
   if (previousFocus?.isConnected) previousFocus.focus();
 });
 
