@@ -113,6 +113,9 @@ try {
         return connect.call(this, target, ...args);
       };
     });
+    if (variant.name === 'narrow') {
+      await page.addInitScript(() => localStorage.setItem('hlt-darja-v1', '{"old":true}'));
+    }
     await page.goto(route);
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar-TN');
@@ -124,6 +127,7 @@ try {
     await capture('title');
     const quietStart = variant.name === 'narrow';
     const music = action('sound');
+    assert.match(await music.innerText(), /^♫\s*الصوت$/);
     assert.equal(await music.getAttribute('aria-pressed'), 'true');
     assert.equal(await page.evaluate(() => window.musicMeter), undefined);
     if (quietStart) await click(music);
@@ -140,6 +144,7 @@ try {
       await click(action('enter'));
     }
     assert.equal(await page.locator('.chapter-card').count(), 1);
+    assert.equal(await page.locator('.chapter-menu .notice').count(), 0);
     if (!quietStart) await hear(62);
     await click(action('splash'));
     assert.equal(await page.locator('.chapter-card').count(), 0);
@@ -234,6 +239,7 @@ try {
 
     await page.reload();
     await click(action('enter'));
+    assert.match(await page.locator('.chapter-progress').innerText(), /وقفت في قهوة الحومة/);
     await click(action('resume'));
     assert.equal(await page.locator('#animated-text').textContent(), resumeLine);
     assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
