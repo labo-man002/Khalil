@@ -97,8 +97,14 @@ function updateSoundButton() {
 function splash() {
   return `<main class="splash" aria-labelledby="game-title">
     <canvas width="480" height="224" aria-hidden="true"></canvas>
-    <div class="weather" aria-hidden="true"></div>
+    <div class="splash-halo" aria-hidden="true"></div>
+    <div class="splash-rain" aria-hidden="true">${Array.from({ length: 30 }, (_, i) => {
+      const x = (i * 37 + 11) % 100;
+      const delay = (i * 173) % 1750;
+      return `<i style="--x:${x}%;--delay:-${delay}ms;--speed:${920 + (i % 5) * 190}ms"></i>`;
+    }).join('')}</div>
     <div class="splash-menu">
+      <p class="splash-series" lang="en" dir="ltr">Hidden Layers of Truth</p>
       <h1 id="game-title">طبقات <span>الحقيقة</span></h1>
       <button class="primary splash-start" data-action="enter">إبدا</button>
     </div>

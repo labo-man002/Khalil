@@ -91,6 +91,8 @@ try {
     assert.equal(await page.locator('html').getAttribute('data-still'), 'true');
     assert.equal(await page.locator('.chapter-card').count(), 0);
     assert.equal(await page.locator('.splash h1').innerText(), 'طبقات الحقيقة');
+    assert.equal(await page.locator('.splash-series').innerText(), 'Hidden Layers of Truth');
+    assert.equal(await page.locator('.splash-menu').evaluate(el => getComputedStyle(el).animationName), 'none');
     await capture('title');
     if (!mobile) {
       assert.equal(await action('enter').evaluate(el => document.activeElement === el), true);
@@ -146,6 +148,8 @@ try {
     await inspect('phone');
     await click(page.locator('[data-id="inbox"]'));
     assert.match(await page.locator('#animated-text').innerText(), /ما تبعثش تقرير التبرّعات الليلة/);
+    await click(action('advance'));
+    assert.match(await page.locator('#animated-text').innerText(), /بعثتلها.*لينا قاعدة تكتب.*ما وصلني حتى جواب/);
     await drain();
     await click(action('leave'));
     await choose('exclude', 72);
