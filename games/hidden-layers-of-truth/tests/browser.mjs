@@ -91,7 +91,7 @@ try {
     assert.equal(await page.locator('html').getAttribute('data-still'), 'true');
     await capture('title');
     await click(action('settings'));
-    assert.equal(await panel.locator('#sound').isChecked(), false);
+    assert.equal(await action('sound').getAttribute('aria-pressed'), 'false');
     await panel.locator('#volume').fill('36');
     await click(panel.locator('label:has(#still)'));
     await click(panel.locator('label:has(#instant)'));
@@ -101,9 +101,13 @@ try {
     assert.equal(await action('settings').evaluate(el => document.activeElement === el), true);
 
     const quietStart = variant.name === 'narrow';
-    const start = page.locator(`[data-action="start"][data-sound="${quietStart ? 'off' : 'on'}"]`);
+    const music = action('sound');
+    assert.equal(await page.locator('.chapter-card').count(), 1);
+    assert.equal(await page.locator('.chapter-stage canvas').count(), 1);
     assert.equal(await page.evaluate(() => window.musicMeter), undefined);
-    await click(start);
+    if (!quietStart) await click(music);
+    assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
+    await click(action('start'));
     assert.equal(await page.locator('.first-clue').evaluate(el => document.activeElement === el), true);
     if (quietStart) {
       assert.equal(await page.evaluate(() => window.musicMeter), undefined);
@@ -128,7 +132,9 @@ try {
       await inspect('laptop');
     }
     await inspect('phone');
-    await inspect('inbox');
+    await click(page.locator('[data-id="inbox"]'));
+    assert.match(await page.locator('#animated-text').innerText(), /ما تبعثش تقرير التبرّعات الليلة/);
+    await drain();
     await click(action('leave'));
     await choose('exclude', 72);
     assert.equal(await page.locator('[data-speaker="sami"] h1').innerText(), 'سامي');
@@ -159,10 +165,13 @@ try {
     await page.reload();
     await click(action('resume'));
     assert.equal(await page.locator('#animated-text').textContent(), resumeLine);
+    assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
+    if (!quietStart) {
+      await click(music);
+      assert.equal(await music.getAttribute('aria-pressed'), 'false');
+    }
     await click(action('settings'));
-    assert.equal(await panel.locator('#sound').isChecked(), true);
     assert.equal(await panel.locator('#volume').inputValue(), '36');
-    await click(panel.locator('label:has(#sound)'));
     await click(action('close', panel));
     await drain();
     await click(action('leave'));

@@ -39,24 +39,17 @@ bdi, output { font-variant-numeric:tabular-nums }
 .notice { color:var(--amber); margin-top:.8rem }
 .label { color:var(--amber); font-size:.86rem }
 
-.title-screen {
-  min-height:100svh; display:grid; align-items:center; position:relative; isolation:isolate; overflow:hidden;
-  padding:clamp(1.5rem,8vw,8rem);
+.toolbar { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center }
+.sound-toggle[aria-pressed="true"] { border-color:var(--amber); color:var(--amber) }
+.chapter-stage { max-height:465px }
+.chapter-stage canvas { position:absolute; inset:0; object-fit:cover }
+.chapters h1 { margin-block-end:.65rem }
+.chapter-card {
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.85rem;
+  border:1px solid var(--frame); border-inline-start:3px solid var(--amber);
+  background:var(--raised); border-radius:6px; padding:clamp(.75rem,2vw,1.25rem);
 }
-.title-screen::after {
-  content:""; position:absolute; inset:0; z-index:-1;
-  background:linear-gradient(270deg,#10181ded 3%,#10181da6 45%,#121b2047 75%),linear-gradient(0deg,#10181d,transparent 48%);
-}
-.title-screen > canvas { position:absolute; z-index:-2; width:100%; height:100%; object-fit:cover; image-rendering:pixelated; inset:0 }
-.title-weather { z-index:-1 }
-.title-copy { max-width:42rem }
-.english { font-family:monospace; color:var(--amber); text-transform:uppercase; letter-spacing:.24em; font-size:clamp(.63rem,1.5vw,.83rem); text-align:right }
-.title-copy h1 { font-size:clamp(3rem,8vw,6.7rem); line-height:1.25; margin:.2rem 0 .5rem; text-shadow:0 3px 28px #11171c }
-.chapter-name { color:var(--amber); font-size:clamp(1.15rem,3vw,2rem); margin-top:0 }
-.chapter-name span { display:inline-block; height:1px; width:2.5rem; background:var(--amber); vertical-align:middle; margin-inline-end:.4rem }
-.premise { margin-block:1.1rem 1.5rem; font-size:clamp(1rem,2vw,1.22rem) }
-.title-actions, .toolbar { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center }
-.title-actions + .hint { margin-top:1rem }
+.chapter-card h2 { margin-block:.1rem .25rem }
 
 .top {
   max-width:1050px; margin:auto; padding:.6rem clamp(.7rem,2vw,1.5rem);

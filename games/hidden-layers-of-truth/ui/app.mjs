@@ -46,9 +46,7 @@ function dispatch(event, focus) {
   render(focus, event.type === 'inspect' ? previous : null);
 }
 
-function start(resume, music = settings.music) {
-  settings = { ...settings, music };
-  saveSettings(storage, settings);
+function start(resume) {
   if (!resume || state.sceneId === 'opening') {
     // The title is the opening shot. Keep its original events for existing saves.
     events = [{ type: 'advance' }, { type: 'advance' }];
@@ -64,8 +62,7 @@ async function syncSound() {
   if (await setAudio(settings)) return;
   settings = { ...settings, music: false };
   saveSettings(storage, settings);
-  const toggle = dialog.querySelector('#sound');
-  if (toggle) toggle.checked = false;
+  updateSoundButton();
   const status = dialog.querySelector('#sound-status');
   if (status) status.textContent = 'الصوت ما خدمش في المتصفّح هذا.';
 }
@@ -84,26 +81,48 @@ function stage(node) {
   </div>`;
 }
 
-function title() {
-  return `<main class="title-screen">
-    <canvas width="480" height="224" aria-hidden="true"></canvas><div class="title-weather weather" aria-hidden="true"></div>
-    <div class="title-copy">
-      <p class="english" lang="en" dir="ltr">Hidden Layers of Truth</p>
-      <h1>طبقات الحقيقة</h1>
-      <p class="chapter-name"><span></span> اللي ما تقالش</p>
-      <p class="premise">إنت سامي، متطوّع في جمعيّة الجسر. غدوة لازم تبعث تقرير التبرّعات. آدم شاف ميساجك وما جاوبكش، وتوّة لينا تطلب منك توقّف الإرسال.</p>
-      <div class="title-actions">
-        <button class="primary" data-action="${state ? 'resume' : 'start'}" data-sound="on">
-          <span aria-hidden="true">♫</span> ${state ? 'نكمّل بالموسيقى' : 'نبدأ بالموسيقى'}</button>
-        <button data-action="${state ? 'resume' : 'start'}" data-sound="off">${state ? 'نكمّل بلا صوت' : 'نبدأ بلا صوت'}</button>
-        ${state ? '<button data-action="start">نعاود من اللّول</button>' : ''}
-        <button data-action="settings">الضبط</button>
-        <button data-action="about">على الحكاية</button>
-      </div>
-      <p class="hint">إلمس العلامات ولا تنقّل بـ <bdi dir="ltr">Tab</bdi> وافتح بـ <bdi dir="ltr">Enter</bdi>.</p>
-      ${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}
+function soundButton() {
+  return `<button data-action="sound" class="sound-toggle" aria-label="الموسيقى" aria-pressed="${settings.music}">
+    <span aria-hidden="true">♫</span><span data-sound-label>${settings.music ? 'الموسيقى شاعلة' : 'الموسيقى طافية'}</span>
+  </button>`;
+}
+
+function updateSoundButton() {
+  const button = app.querySelector('[data-action="sound"]');
+  button.setAttribute('aria-pressed', settings.music);
+  button.querySelector('[data-sound-label]').textContent = settings.music ? 'الموسيقى شاعلة' : 'الموسيقى طافية';
+}
+
+function chapterMenu() {
+  const finished = state && chapter[state.sceneId].kind === 'end';
+  const action = !state ? 'start' : 'resume';
+  const label = !state ? 'نلعب الفصل' : finished ? 'نشوف النهاية' : 'نكمّل من وين وقفت';
+  return `<main class="game chapter-menu">
+    <div class="stage chapter-stage" data-place="street">
+      <canvas width="480" height="224" aria-hidden="true"></canvas>
+      <div class="weather" aria-hidden="true"></div>
+      <p class="stage-caption"><span class="map-pin" aria-hidden="true"></span>قدّام قهوة الحومة</p>
     </div>
+    <section class="story-panel chapters" aria-labelledby="chapters-title">
+      <h1 id="chapters-title">الفصول</h1>
+      <article class="chapter-card">
+        <div><p class="label">الفصل اللّول</p><h2>اللّي ما تقالش</h2><p>إنت سامي. قبل ما تبعث حساب التبرّعات، لينا تطلب منك تتثبّت في رقم.</p></div>
+        <div class="toolbar chapter-actions">
+          <button class="primary" data-action="${action}">${label}</button>
+          ${state ? '<button data-action="start">نعاود الفصل</button>' : ''}
+        </div>
+      </article>
+    </section>
+    ${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}
   </main>`;
+}
+
+function gameHeader() {
+  return `<header class="top"><span class="brand">طبقات الحقيقة</span><div class="toolbar">
+    ${soundButton()}${inGame ? `<button data-action="journal">الدفتر <bdi>${state.evidence.length}</bdi></button>` : ''}
+    <button data-action="settings">الضبط</button>
+    <button data-action="${inGame ? 'menu' : 'about'}">${inGame ? 'القائمة' : 'على الحكاية'}</button>
+  </div></header>`;
 }
 
 function exhibit() {
@@ -227,9 +246,9 @@ function render(focus, from) {
   cancelAnimationFrame(walkFrame);
   if (!inGame) {
     setSceneMusic('street');
-    app.innerHTML = title();
+    app.innerHTML = gameHeader() + chapterMenu();
     drawScene(app.querySelector('canvas'), 'street', 'title');
-    app.querySelector(focus ?? 'h1')?.focus();
+    if (focus) app.querySelector(focus)?.focus();
     return;
   }
   const node = chapter[state.sceneId];
@@ -238,10 +257,7 @@ function render(focus, from) {
   const beat = beats?.[state.beatIndex];
   const body = beat ? dialogue(beat, state.hotspot && state.beatIndex === beats.length - 1)
     : node.kind === 'explore' ? investigation(node) : node.kind === 'decision' ? decision(node) : finish();
-  app.innerHTML = `<header class="top"><span class="brand">طبقات الحقيقة</span><div class="toolbar">
-    <button data-action="journal">الدفتر <bdi>${state.evidence.length}</bdi></button>
-    <button data-action="settings">الضبط</button><button data-action="menu">القائمة</button>
-  </div></header><main class="game">${stage(node)}${body}
+  app.innerHTML = gameHeader() + `<main class="game">${stage(node)}${body}
   ${notice ? `<p class="notice" role="status">${messages[notice]}</p>` : ''}</main>`;
   animateStage(app.querySelector('.stage canvas'), node, beat, from);
   if (beat) {
@@ -292,7 +308,6 @@ dialog.addEventListener('close', () => previousFocus?.isConnected && previousFoc
 
 function settingsPanel() {
   openPanel('الضبط', `<div class="settings">
-    <label><input type="checkbox" id="sound" ${settings.music ? 'checked' : ''}> الموسيقى والمؤثّرات</label>
     <div class="confidence"><label for="volume">قوّة الصوت</label>
       <input type="range" id="volume" min="0" max="100" dir="ltr" value="${settings.volume}">
       <output for="volume" dir="ltr">${settings.volume}%</output></div>
@@ -332,13 +347,19 @@ document.addEventListener('click', event => {
   switch (control.dataset.action) {
     case 'start':
       if (state) confirmRestart();
-      else start(false, control.dataset.sound === 'on');
+      else start(false);
       break;
     case 'restart':
       dialog.close();
       start(false);
       break;
-    case 'resume': start(true, control.dataset.sound === 'on'); break;
+    case 'resume': start(true); break;
+    case 'sound':
+      settings = { ...settings, music: !settings.music };
+      saveSettings(storage, settings);
+      updateSoundButton();
+      syncSound();
+      break;
     case 'close': dialog.close(); break;
     case 'settings': settingsPanel(); break;
     case 'journal': journal(); break;
@@ -347,7 +368,7 @@ document.addEventListener('click', event => {
       openPanel('على الحكاية', '<p>إنت سامي، متطوّع في جمعيّة الجسر. دوّر في البلايص، اسمع للناس، وقارن الورق. اختيارك يبدّل شنوّة تعرف وشنوّة يصير.</p><p>الحفظ على المتصفّح هذا. <bdi dir="ltr">Tab</bdi> للتنقّل و<bdi dir="ltr">Enter</bdi> للاختيار.</p><button data-action="source">على الآية</button>');
       break;
     case 'menu':
-      openPanel('وقفنا الحكاية', '<p>تنجّم تكمّل من وين وقفت.</p><div class="toolbar"><button class="primary" data-action="close">نكمّل</button><button data-action="title">نرجع للعنوان</button><button data-action="start">نبدأ من اللّول</button></div>');
+      openPanel('وقفنا الحكاية', '<p>تنجّم تكمّل من وين وقفت.</p><div class="toolbar"><button class="primary" data-action="close">نكمّل</button><button data-action="title">نرجع للفصول</button><button data-action="start">نبدأ من اللّول</button></div>');
       break;
     case 'title':
       dialog.close();
@@ -379,12 +400,12 @@ document.addEventListener('submit', event => {
 document.addEventListener('input', event => {
   const control = event.target;
   if (control.type === 'range') control.parentElement.querySelector('output').textContent = `${control.value}%`;
-  const key = { sound: 'music', volume: 'volume', still: 'reducedMotion', instant: 'instantText' }[control.id];
+  const key = { volume: 'volume', still: 'reducedMotion', instant: 'instantText' }[control.id];
   if (!key) return;
   settings = { ...settings, [key]: control.type === 'checkbox' ? control.checked : Number(control.value) };
   if (!saveSettings(storage, settings)) dialog.querySelector('#sound-status').textContent = messages.unsaved;
   updateMotion();
-  if (key === 'music' || key === 'volume') syncSound();
+  if (key === 'volume') syncSound();
 });
 
 updateMotion();
