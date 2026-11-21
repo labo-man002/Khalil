@@ -75,11 +75,24 @@ try {
       await click(page.locator('#decision button[type=submit]'));
     };
 
+    // Check the finished audio signal, including scene transitions through the mixer.
+    const hear = midi => page.waitForFunction(expected => {
+      const meter = window.musicMeter;
+      if (!meter || meter.context.state !== 'running') return false;
+      const bins = new Float32Array(meter.frequencyBinCount);
+      meter.getFloatFrequencyData(bins);
+      const hz = 440 * 2 ** ((expected - 69) / 12);
+      const bin = Math.round(hz * meter.fftSize / meter.context.sampleRate);
+      return Math.max(bins[bin - 1], bins[bin], bins[bin + 1]) > -50;
+    }, midi, { timeout: 4000 });
+
     await page.addInitScript(() => {
       const connect = AudioNode.prototype.connect;
       AudioNode.prototype.connect = function (target, ...args) {
         if (target === this.context.destination) {
           window.musicMeter = this.context.createAnalyser();
+          window.musicMeter.fftSize = 4096;
+          window.musicMeter.smoothingTimeConstant = 0;
           connect.call(this, window.musicMeter);
         }
         return connect.call(this, target, ...args);
@@ -145,7 +158,9 @@ try {
     } else {
       await inspect('laptop');
     }
-    await inspect('phone');
+    await click(page.locator('[data-id="phone"]'));
+    if (!mobile) await hear(53);
+    await drain();
     await click(page.locator('[data-id="inbox"]'));
     assert.match(await page.locator('#animated-text').innerText(), /ما تبعثش تقرير التبرّعات الليلة/);
     await click(action('advance'));
@@ -176,6 +191,7 @@ try {
     await click(action('leave'));
     await choose(variant.ending === 'post' ? 'share' : 'check');
     await click(page.locator('[data-id=adam]'));
+    if (!mobile) await hear(67);
     await click(action('advance'));
     const resumeLine = await page.locator('#animated-text').textContent();
 
@@ -199,7 +215,10 @@ try {
     await click(action('leave'));
     await choose('listen');
     await drain();
-    await inspect('statement');
+    if (!mobile) await click(music);
+    await click(page.locator('[data-id="statement"]'));
+    if (!mobile) await hear(79);
+    await drain();
     await inspect('annex');
     await click(action('leave'));
     assert.match(await page.locator('.earlier').innerText(), /35%/);
