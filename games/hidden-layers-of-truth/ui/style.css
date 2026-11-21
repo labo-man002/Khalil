@@ -39,11 +39,33 @@ bdi, output { font-variant-numeric:tabular-nums }
 .notice { color:var(--amber); margin-top:.8rem }
 .label { color:var(--amber); font-size:.86rem }
 
+.splash {
+  min-height:100svh; display:grid; align-items:end; position:relative; isolation:isolate; overflow:hidden;
+  padding:clamp(1.4rem,7vw,7rem);
+}
+.splash > canvas, .splash::before {
+  position:absolute; inset:0; width:100%; height:100%;
+}
+.splash > canvas { z-index:-3; object-fit:cover; object-position:52% center; image-rendering:pixelated }
+.splash > .weather { z-index:-2 }
+.splash::before {
+  content:""; z-index:-1;
+  background:linear-gradient(0deg,#090e13 1%,#090e13c9 25%,transparent 72%),
+    linear-gradient(270deg,#091014a3 0%,transparent 68%);
+}
+.splash-menu { width:fit-content }
+.splash h1 {
+  font-size:clamp(2.95rem,8.8vw,8.3rem); line-height:1.23;
+  margin-block-end:clamp(1.05rem,3vw,2.5rem); text-shadow:0 5px 32px #0009;
+}
+.splash h1 span { color:var(--amber) }
+.splash-start { min-width:clamp(7rem,14vw,12rem); min-height:58px; font-size:1.2rem }
+.splash-start:focus-visible { outline-offset:6px }
+.chapters-heading { display:flex; align-items:center; justify-content:space-between; gap:.65rem; margin-block-end:.65rem }
 .toolbar { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center }
 .sound-toggle[aria-pressed="true"] { border-color:var(--amber); color:var(--amber) }
-.chapter-stage { max-height:465px }
+.chapter-stage { width:100%; max-height:465px }
 .chapter-stage canvas { position:absolute; inset:0; object-fit:cover }
-.chapters h1 { margin-block-end:.65rem }
 .chapter-card {
   display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.85rem;
   border:1px solid var(--frame); border-inline-start:3px solid var(--amber);

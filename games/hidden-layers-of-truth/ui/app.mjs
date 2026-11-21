@@ -15,7 +15,7 @@ const storage = {
 };
 let { state, events, notice } = loadStory(storage);
 let settings = loadSettings(storage);
-let inGame = false;
+let view = 'splash';
 let typing;
 let previousFocus;
 let walkFrame;
@@ -48,12 +48,12 @@ function dispatch(event, focus) {
 
 function start(resume) {
   if (!resume || state.sceneId === 'opening') {
-    // The title is the opening shot. Keep its original events for existing saves.
+    // Keep the original opening events so older saves replay to the same scene.
     events = [{ type: 'advance' }, { type: 'advance' }];
     state = events.reduce(transition, newStory());
     notice = saveStory(storage, events) ? null : 'unsaved';
   }
-  inGame = true;
+  view = 'game';
   syncSound();
   render();
 }
@@ -89,8 +89,20 @@ function soundButton() {
 
 function updateSoundButton() {
   const button = app.querySelector('[data-action="sound"]');
+  if (!button) return;
   button.setAttribute('aria-pressed', settings.music);
   button.querySelector('[data-sound-label]').textContent = settings.music ? 'الموسيقى شاعلة' : 'الموسيقى طافية';
+}
+
+function splash() {
+  return `<main class="splash" aria-labelledby="game-title">
+    <canvas width="480" height="224" aria-hidden="true"></canvas>
+    <div class="weather" aria-hidden="true"></div>
+    <div class="splash-menu">
+      <h1 id="game-title">طبقات <span>الحقيقة</span></h1>
+      <button class="primary splash-start" data-action="enter">إبدا</button>
+    </div>
+  </main>`;
 }
 
 function chapterMenu() {
@@ -104,7 +116,7 @@ function chapterMenu() {
       <p class="stage-caption"><span class="map-pin" aria-hidden="true"></span>قدّام قهوة الحومة</p>
     </div>
     <section class="story-panel chapters" aria-labelledby="chapters-title">
-      <h1 id="chapters-title">الفصول</h1>
+      <div class="chapters-heading"><h1 id="chapters-title">الفصول</h1><button data-action="splash">نرجع للبداية</button></div>
       <article class="chapter-card">
         <div><p class="label">الفصل اللّول</p><h2>اللّي ما تقالش</h2><p>إنت سامي. قبل ما تبعث حساب التبرّعات، لينا تطلب منك تتثبّت في رقم.</p></div>
         <div class="toolbar chapter-actions">
@@ -118,6 +130,7 @@ function chapterMenu() {
 }
 
 function gameHeader() {
+  const inGame = view === 'game';
   return `<header class="top"><span class="brand">طبقات الحقيقة</span><div class="toolbar">
     ${soundButton()}${inGame ? `<button data-action="journal">الدفتر <bdi>${state.evidence.length}</bdi></button>` : ''}
     <button data-action="settings">الضبط</button>
@@ -244,11 +257,12 @@ function animateStage(canvas, node, beat, from) {
 function render(focus, from) {
   finishTyping();
   cancelAnimationFrame(walkFrame);
-  if (!inGame) {
+  if (view !== 'game') {
     setSceneMusic('street');
-    app.innerHTML = gameHeader() + chapterMenu();
-    drawScene(app.querySelector('canvas'), 'street', 'title');
-    if (focus) app.querySelector(focus)?.focus();
+    app.innerHTML = view === 'splash' ? splash() : gameHeader() + chapterMenu();
+    drawScene(app.querySelector('canvas'), 'street', view);
+    const target = focus ?? (view === 'splash' ? '[data-action="enter"]' : '.chapter-actions .primary');
+    app.querySelector(target)?.focus({ preventScroll: true });
     return;
   }
   const node = chapter[state.sceneId];
@@ -345,6 +359,16 @@ document.addEventListener('click', event => {
   const control = event.target.closest('[data-action]');
   if (!control) return;
   switch (control.dataset.action) {
+    case 'enter':
+      view = 'chapters';
+      render();
+      syncSound();
+      break;
+    case 'splash':
+      view = 'splash';
+      setAudio({ ...settings, music: false });
+      render();
+      break;
     case 'start':
       if (state) confirmRestart();
       else start(false);
@@ -372,8 +396,8 @@ document.addEventListener('click', event => {
       break;
     case 'title':
       dialog.close();
-      inGame = false;
-      render('[data-action="resume"]');
+      view = 'chapters';
+      render();
       break;
     case 'inspect': dispatch({ type: 'inspect', id: control.dataset.id }, '[data-action="advance"]'); break;
     case 'advance':

@@ -89,7 +89,19 @@ try {
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar-TN');
     assert.equal(await page.locator('html').getAttribute('data-still'), 'true');
+    assert.equal(await page.locator('.chapter-card').count(), 0);
+    assert.equal(await page.locator('.splash h1').innerText(), 'طبقات الحقيقة');
     await capture('title');
+    if (!mobile) {
+      assert.equal(await action('enter').evaluate(el => document.activeElement === el), true);
+      await page.keyboard.press('Enter');
+    } else {
+      await click(action('enter'));
+    }
+    assert.equal(await page.locator('.chapter-card').count(), 1);
+    await click(action('splash'));
+    assert.equal(await page.locator('.chapter-card').count(), 0);
+    await click(action('enter'));
     await click(action('settings'));
     assert.equal(await action('sound').getAttribute('aria-pressed'), 'false');
     await panel.locator('#volume').fill('36');
@@ -163,6 +175,7 @@ try {
     const resumeLine = await page.locator('#animated-text').textContent();
 
     await page.reload();
+    await click(action('enter'));
     await click(action('resume'));
     assert.equal(await page.locator('#animated-text').textContent(), resumeLine);
     assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
@@ -198,6 +211,7 @@ try {
     await capture('ending', true);
 
     await page.reload();
+    await click(action('enter'));
     await click(action('resume'));
     assert.equal(await page.locator('#scene-title').textContent(), variant.title);
     await click(action('start'));
