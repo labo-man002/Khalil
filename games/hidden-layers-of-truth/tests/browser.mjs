@@ -84,9 +84,12 @@ try {
     const choose = async (id, confidence) => {
       await click(page.locator(`label:has([value="${id}"])`));
       if (confidence !== undefined) {
-        const slider = page.locator('#confidence');
-        await slider.fill(String(confidence));
-        assert.equal(await page.locator('output[for=confidence]').textContent(), confidence + '%');
+        const level = page.locator(`.certainty-options label:has([value="${confidence}"])`);
+        await click(page.locator('#decision button[type=submit]'));
+        assert.equal(await page.locator('.certainty.needs-confidence').count(), 1);
+        assert.equal(await page.locator('[name="confidence"]:checked').count(), 0);
+        await click(level);
+        assert.equal(await page.locator('[name="confidence"]:checked').inputValue(), String(confidence));
       }
       await click(page.locator('#decision button[type=submit]'));
     };
@@ -209,6 +212,11 @@ try {
     assert.match(await page.locator('#investigation-progress').innerText(), /مازال يلزمك تشوف/);
     if (!mobile) {
       await page.emulateMedia({ reducedMotion: 'no-preference' });
+      const stage = page.locator('.stage canvas');
+      await click(page.locator('[data-id=window]'));
+      const rainFrame = await stage.evaluate(canvas => canvas.toDataURL());
+      await page.waitForFunction(previous => document.querySelector('.stage canvas').toDataURL() !== previous, rainFrame);
+      await drain();
       await page.locator('[data-id=laptop]').focus();
       await page.keyboard.press('Enter');
       assert.equal(await action('advance').evaluate(el => document.activeElement === el), true);
@@ -227,6 +235,7 @@ try {
     assert(phone.y >= 0 && phone.y + 20 <= copy.y + copy.height,
       'the phone appears without scrolling');
     assert.match(await page.locator('.chat-status').innerText(), /قراه/);
+    assert.match(await page.locator('.character-intro').innerText(), /صاحب سامي/);
     if (await page.locator('.dialogue-copy').evaluate(el => el.scrollHeight > el.clientHeight)) {
       await page.keyboard.press('PageDown');
       await page.waitForFunction(() => document.querySelector('.dialogue-copy').scrollTop > 0);
@@ -247,7 +256,7 @@ try {
     assert.equal(await action('leave').evaluate(el => el === document.activeElement), true);
     assert.equal(await page.locator('#investigation-progress').count(), 0);
     await click(action('leave'));
-    await choose('exclude', 72);
+    await choose('exclude', 75);
     assert.match(await page.locator('#animated-text').innerText(), /نهار الجمعة الصباح/);
     assert.equal(await page.locator('[data-speaker="sami"] h1').innerText(), 'سامي');
     await click(action('advance'));
@@ -260,7 +269,7 @@ try {
     await capture('investigation');
     await inspect('folder');
     await click(action('leave'));
-    await choose('missing', 35);
+    await choose('missing', 25);
     await assertHotspotsSeparate();
 
     await click(action('journal'));
@@ -272,6 +281,10 @@ try {
     await inspect('amina');
     await click(action('leave'));
     await choose(variant.ending === 'post' ? 'share' : 'check');
+    await click(page.locator('[data-id=cup]'));
+    assert.match(await page.locator('#animated-text').innerText(), /ناخذ رشفة/);
+    await click(action('sip'));
+    await drain();
     await click(page.locator('[data-id=adam]'));
     if (!mobile) await hear(67);
     await click(action('advance'));
@@ -304,8 +317,9 @@ try {
     await drain();
     await inspect('annex');
     await click(action('leave'));
-    assert.match(await page.locator('.earlier').innerText(), /35%/);
-    await choose('moved', 86);
+    assert.match(await page.locator('.earlier').innerText(), /25%/);
+    await capture('confidence');
+    await choose('moved', 100);
     assert.equal(await page.locator('.tradeoff').count(), 3);
     await choose(variant.ending);
     await drain();
@@ -314,12 +328,39 @@ try {
     assert.match(await recap.innerText(), /2,400/);
     assert.match(await recap.innerText(), /قعدوا في حساب الجمعيّة/);
     assert.match(await recap.innerText(), /ما تأكّدناش/);
-    assert.match(await page.locator('.reflection').innerText(), /86%/);
+    assert.match(await page.locator('.reflection').innerText(), /100%/);
     assert.match(await page.locator('.reflection').innerText(), /ما جاوبكش/);
     assert.equal(await page.locator('.pattern-recap dt').count(), 3);
     assert.equal(await page.locator('.mirror-messages article').count(), 2);
     assert.match(await page.locator('.mirror-messages').innerText(), /طمّنّي عليك/);
-    assert.match(await page.locator('.lesson blockquote').innerText(), /ٱلظَّنِّ/);
+    assert.match(await page.locator('.lesson blockquote').innerText(), /يَا أَيُّهَا.*وَلَا تَجَسَّسُوا.*تَوَّابٌ رَحِيمٌ/);
+    assert.deepEqual(await page.locator('.confidence-trail bdi').allTextContents(), ['75%', '25%', '100%']);
+    await click(action('ending-insights'));
+    assert.equal(await page.locator('#reflection-title').evaluate(el => el === document.activeElement), true);
+    await click(page.locator('.decision-recap summary'));
+    assert.equal(await page.locator('.decision-recap dd').count(), 3);
+    if (process.env.GAME_VERSE_AUDIO && !mobile) {
+      await page.route('https://everyayah.com/**/049012.mp3', route => route.fulfill({
+        path: process.env.GAME_VERSE_AUDIO, contentType: 'audio/mpeg',
+      }));
+      await page.evaluate(() => {
+        const play = HTMLMediaElement.prototype.play;
+        HTMLMediaElement.prototype.play = function () {
+          window.versePlayer = this;
+          return play.call(this);
+        };
+      });
+      await click(action('ending-verse'));
+      await page.waitForFunction(() => window.versePlayer?.currentTime > 0.12);
+      await page.waitForFunction(() => {
+        const meter = window.musicMeter;
+        const samples = new Float32Array(meter.fftSize);
+        meter.getFloatTimeDomainData(samples);
+        return samples.every(sample => Math.abs(sample) < 0.001);
+      });
+      await click(action('recite'));
+      assert.equal(await action('recite').textContent(), 'نسمع الآية');
+    }
     await capture('ending', true);
 
     await page.reload();

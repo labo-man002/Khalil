@@ -259,10 +259,10 @@ const gestures = {
   maryam: [0, 1, 3, 4, 3, 1, 0, 0],
 };
 
-function sprite(ctx, name, x, y, face, muted, motion, stride) {
+function sprite(ctx, name, x, y, face, muted, motion, stride, sipping) {
   const [,shirt,skin,hair] = cast[name];
   ctx.save();
-  ctx.globalAlpha = muted ? 0.60 : 1;
+  ctx.globalAlpha = muted ? 0.78 : 1;
   ctx.translate(x,y);
   ctx.scale(face,1);
   const {box,poly} = painter(ctx);
@@ -278,7 +278,11 @@ function sprite(ctx, name, x, y, face, muted, motion, stride) {
   poly([[-8,-38],[7,-38],[12,-30],[12,-15],[-11,-15],[-12,-30]],shirt);
   box(-10,-30,2,13,'#ffffff20');
   const hand = (gestures[name] ?? gestures.sami)[pose];
-  if (hand) {
+  if (sipping) {
+    poly([[10,-29],[13,-27],[16,-36],[11,-39],[8,-33]],skin);
+    box(9,-42,8,6,'#e9d3ad');
+    box(16,-41,3,3,'#bd9070');
+  } else if (hand) {
     poly([[8,-26],[11,-27],[13 + hand,-25 - hand],[12 + hand,-22 - hand],[10,-22]],skin);
   } else {
     box(8,-25,4,11,skin);
@@ -311,8 +315,15 @@ function sceneLayer(canvas, key, paint) {
   return layer;
 }
 
-function sceneDetails(ctx, place, sceneId, time) {
+function sceneDetails(ctx, place, sceneId, time, interaction) {
   const {box, glow} = painter(ctx);
+  if (place === 'room') {
+    glow(341,68,97,interaction === 'window' ? '#72c9f250' : '#72c9f224');
+    for (let i = 0; i < 22; i++) {
+      const y = 26 + ((i * 37 + Math.floor(time / 23)) % 81);
+      box(278 + (i * 31) % 124, y, 1, 3 + i % 4, '#badbf470');
+    }
+  }
   if (place === 'room' && sceneId === 'intro' && time < 3400) {
     if (Math.floor(time / 390) % 2 === 0) {
       glow(93,144,24,'#9cdac06e');
@@ -321,6 +332,7 @@ function sceneDetails(ctx, place, sceneId, time) {
   }
   if (place === 'cafe' && sceneId !== 'adam-story') {
     for (const [index, x] of [216,377].entries()) {
+      if (!index && interaction === 'cup' && time > 210 && time < 850) continue;
       const rise = (Math.floor(time / 130) + index * 3) % 9;
       box(x + (rise % 3) - 1, 133 - rise * 2, 3, 2, '#e9c9a066');
       box(x + (rise % 3) + 2, 131 - rise * 2, 2, 1, '#e9c9a038');
@@ -331,6 +343,12 @@ function sceneDetails(ctx, place, sceneId, time) {
     box(237 + glint,161 + glint * 4,7 + glint,1,'#e9bc795c');
   }
   if (place === 'office') {
+    if (sceneId === 'morning') {
+      const offset = Math.round(Math.max(0, 1 - time / 650) * 14);
+      box(360 + offset,149,3,21,'#ac7956');
+      box(360 + offset,161,14,3,'#cd9866');
+      box(371 + offset,164,2,9,'#917058');
+    }
     for (const [x,y] of [[373,173], [396,175], [390,161]]) {
       box(x,y,20,12,'#a8784c');
       box(x,y,20,2,'#c09160');
@@ -339,7 +357,7 @@ function sceneDetails(ctx, place, sceneId, time) {
   }
 }
 
-export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'room' ? 249 : 145, motion = 0, stride = 0, sceneTime = 0) {
+export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'room' ? 249 : 145, motion = 0, stride = 0, sceneTime = 0, interaction) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const opening = sceneId === 'splash';
@@ -347,12 +365,12 @@ export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'ro
   const atmosphere = sceneLayer(canvas, 'atmosphere', (p, layer) => {
     p.noise(0,0,W,H,2000,'#d5cfba0c');
     const shade = layer.createRadialGradient(W/2,H/2,66,W/2,H/2,260);
-    shade.addColorStop(0,'transparent');
-    shade.addColorStop(1,'#0b141b96');
+    shade.addColorStop(0,'#fff1d208');
+    shade.addColorStop(1,'#080f1ba8');
     p.box(0,0,W,H,shade);
   });
   ctx.drawImage(background, 0, 0);
-  sceneDetails(ctx, place, sceneId, sceneTime);
+  sceneDetails(ctx, place, sceneId, sceneTime, interaction);
 
   const featured = {
     room: sceneId === 'home' || sceneId === 'mirror' || speaker === 'maryam' ? [['maryam',307,169,-1]] : [],
@@ -379,7 +397,10 @@ export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'ro
   }
   const active = people.find(person => person[0] === speaker);
   for (const [name, x, y, face] of people) {
-    sprite(ctx, name, x, y, face, active && name !== speaker, name === speaker ? motion : 0, name === 'sami' ? stride : 0);
+    const witnessWalking = ['hala', 'moncef'].includes(name) && ['morning', 'wait'].includes(sceneId) && sceneTime < 1400;
+    const sipping = name === 'sami' && interaction === 'cup' && sceneTime > 210 && sceneTime < 850;
+    sprite(ctx, name, x, y, face, active && name !== speaker, name === speaker ? motion : 0,
+      name === 'sami' ? stride : witnessWalking ? Math.round(Math.sin(sceneTime / 60) * 4) : 0, sipping);
   }
   ctx.drawImage(atmosphere, 0, 0);
   if (active) {

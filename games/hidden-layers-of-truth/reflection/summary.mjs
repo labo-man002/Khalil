@@ -64,6 +64,50 @@ function recognizePattern(opening, before, after, { rumor, final }) {
   return [openingPatterns[opening.interpretation], revision, action];
 }
 
+const decisions = {
+  meeting: {
+    challenge: 'سألت يوسف على ذكر اسمك قدّام الناس. قال اللي كان يلزمو يحكي معاك قبل، وتأجّل التثبّت لبعد التوزيع.',
+    clarify: 'طلبت تشوف الزوز نسخ قدّام الناس. لينا حدّدت السطر وآدم تطوّع يجيب الورق.',
+    wait: 'استنّيت لين خرجوا الناس. ربحت هدوء باش تشوف الورق مع لينا، وناس خرجت وهي تحسب الغلطة منك.',
+  },
+  adamReply: {
+    witness: 'طلبت من آدم يشهد باللي يعرفو. وافق، وخليت حكاية خوّه بيناتكم.',
+    boundary: 'طلبت شوية وقت وخليت التصحيح للينا. آدم عرض يكتب اللي يعرفو كان تحتاجوه.',
+    cut: 'طلبت من آدم يغيب غدوة. هكّا بَعّدتُه على المواجهة، ولينا شالت التصحيح.',
+  },
+  mirror: {
+    listen: 'سألت مريم شنوّة فهمت من سكوتك. عطيتها فرصة تحكيلك قبل ما تفسّر روحك.',
+    explain: 'قلت لمريم وقتاش قريت الميساج وشنوّة خلاّك تنسى. وعدتها بكلمة صغيرة المرّة الجاية.',
+    space: 'طلبت تأجّل الحديث للغدوة. خذيت وقت ترتاح، ومريم بقات تستنّى باش تفهم.',
+  },
+};
+
+function readConfidence(opening, before, after) {
+  const delta = after.confidence - before.confidence;
+  const direction = delta === 0 ? 'ثقتك في تفسير الحكاية قعدت كيف كيف.'
+    : `ثقتك في تفسير الحكاية ${delta > 0 ? 'طلعت' : 'هبطت'} بـ${Math.abs(delta)} نقطة بعد كشف البنك.`;
+  const context = after.interpretation === 'moved'
+    ? 'توّة عندك كشف يسند تفسيرك.'
+    : 'الكشف يورّي وين قعدت الفلوس. نيّة الناس ما تظهرش فيه.';
+  const openingNote = opening.confidence >= 75 && opening.interpretation !== 'unknown'
+    ? 'مع آدم، كنت واثق برشة من تفسيرك قبل ما تسمع منّو.'
+    : opening.interpretation === 'unknown'
+      ? 'مع آدم، اخترت تقول اللي المعطيات ما تكفّيش. النسبة تسجّل قداش إنت واثق من الاستنتاج هذا.'
+      : 'مع آدم، سجّلت تفسيرك الأوّل على قدّ اللي شفتو وقتها.';
+  return `${direction} ${context} ${openingNote}`;
+}
+
+function findTakeaway(after, actions) {
+  if (after.interpretation !== 'moved') return 'وصلت لوثيقة تحسم وين قعدت الفلوس. قبل ما تبني عليها حكم على الناس، رجّع بالك للسطرين وقارن المبلغ بينهم.';
+  if (actions.rumor === 'share') return 'تبّعت أثر الفلوس لين لقيت الدليل. في حكاية الكلام على يوسف، المعلومة تعدّات قبل التثبّت. نفس السؤال يخدمك في الزوز: شكون شافها بيدو؟';
+  if (actions.final === 'post') return 'حاولت توصل التصحيح بسرعة. كي دارت تصويرة السطر وحدها، بان قداش السياق ينجم يضيع بين غروب وغروب.';
+  if (actions.adamReply === 'witness' && actions.final === 'correct') return 'رجّعت التصحيح لنفس الناس اللي سمعت اللوم، وخليت آدم يوضّح اللي يعرفو من غير ما تدخّل خوّه في الحكاية.';
+  if (actions.mirror === 'listen') return 'عطيت مريم فرصة تقول شنوّة فهمت من سكوتك. في التحقيق زادة، كي سألت وقارنت الورق، بان فرق بين اللي شفتو واللي خمّمتو.';
+  return actions.final === 'internal'
+    ? 'أمّنت الورق عند اللجنة وخليت التثبّت ياخو وقتو. بقى سؤال مفتوح: شكون يوصل التصحيح للناس اللي سمعت اللوم؟'
+    : 'طلبت تصحيح واضح بعد ما تبيّن وين قعدت الفلوس. هكّا واجهت الغلطة اللي تنجم تثبتها.';
+}
+
 export function summarize(state) {
   const [opening, before, after] = state.judgments;
   const added = after.evidence.filter(id => !before.evidence.includes(id));
@@ -78,8 +122,18 @@ export function summarize(state) {
     update = 'قلت اللي الكشف مازال موش واضح عندك. جرّب طابق نفس المبلغ بين السطرين: نقص من القفف وزاد في التوصيل، والحساب ما خرجت منّو حتى فلوس بالتبديل هذا.';
   }
 
+  const { actions } = state;
+  const actionTrail = Object.entries(decisions).flatMap(([scene, feedback]) => {
+    const chosen = actions[scene];
+    return feedback[chosen]
+      ? [[chapter[scene].options.find(option => option.id === chosen).label, feedback[chosen]]]
+      : [];
+  });
   return {
-    opening, before, after, added, update,
+    opening, before, after, added, update, actionTrail,
+    takeaway: findTakeaway(after, actions),
+    confidenceTrail: [['سكوت آدم', opening.confidence], ['قبل الكشف', before.confidence], ['بعد الكشف', after.confidence]],
+    confidenceReading: readConfidence(opening, before, after),
     patterns: recognizePattern(opening, before, after, state.actions),
     openingFeedback: firstRead[opening.interpretation],
     leadFeedback: followUp[state.actions.lead],

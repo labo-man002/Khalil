@@ -29,6 +29,7 @@ let revision = 0;
 let cueName = 'street';
 let score;
 let enabled = false;
+let volumeLevel = 0;
 
 function note(bus, time, midi, duration, level, type = 'sine', attack = .06) {
   const oscillator = context.createOscillator();
@@ -168,7 +169,8 @@ export async function setAudio({ music, volume }) {
     if (music) await context.resume();
     if (request !== revision) return true;
     enabled = music;
-    master.gain.setTargetAtTime(music ? .59 * volume / 100 : 0, context.currentTime, .07);
+    volumeLevel = .59 * volume / 100;
+    master.gain.setTargetAtTime(music && !listening ? volumeLevel : 0, context.currentTime, .07);
     if (!enabled) stopScore();
     else if (!score) startScore();
     return true;
@@ -189,4 +191,65 @@ export function phoneBuzz() {
   const now = context.currentTime;
   note(master, now, 45, .13, .17, 'pulse', .015);
   note(master, now + .19, 45, .12, .13, 'pulse', .015);
+}
+
+let listening = false;
+
+export function setRecitationActive(active) {
+  listening = active;
+  if (!context) return;
+  master.gain.cancelScheduledValues(context.currentTime);
+  if (active) master.gain.setValueAtTime(0, context.currentTime);
+  else master.gain.setTargetAtTime(enabled ? volumeLevel : 0, context.currentTime, .07);
+}
+
+function texture(time, duration, level, frequency, type) {
+  const noise = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const envelope = context.createGain();
+  noise.buffer = softNoise;
+  filter.type = type;
+  filter.frequency.value = frequency;
+  envelope.gain.setValueAtTime(.0001, time);
+  envelope.gain.linearRampToValueAtTime(level, time + Math.min(.025, duration / 3));
+  envelope.gain.exponentialRampToValueAtTime(.0001, time + duration);
+  noise.connect(filter).connect(envelope).connect(master);
+  noise.start(time, Math.random() * .7, duration);
+}
+
+export function sceneSound(action, place) {
+  if (!enabled || listening) return;
+  const now = context.currentTime;
+  if (action === 'step') {
+    const outside = place === 'street';
+    note(master, now, outside ? 33 : 37, .105, .14, 'triangle', .012);
+    texture(now, .15, outside ? .24 : .18, outside ? 1900 : 520, 'lowpass');
+  } else if (action === 'chair') {
+    texture(now, .38, .24, 640, 'bandpass');
+    note(master, now + .29, 39, .14, .16, 'triangle', .012);
+  } else if (action === 'cup') {
+    texture(now + .20, .35, .105, 1040, 'bandpass');
+    note(master, now + .72, 94, .23, .083, 'bell', .009);
+    note(master, now + .76, 101, .19, .049, 'sine', .013);
+  }
+}
+
+let windowRain;
+
+export function setWindowRain(near) {
+  if (!context) return;
+  if (!windowRain) {
+    const rain = context.createBufferSource();
+    const filter = context.createBiquadFilter();
+    const gain = context.createGain();
+    rain.buffer = softNoise;
+    rain.loop = true;
+    filter.type = 'highpass';
+    filter.frequency.value = 440;
+    gain.gain.value = 0;
+    rain.connect(filter).connect(gain).connect(master);
+    rain.start();
+    windowRain = gain;
+  }
+  windowRain.gain.setTargetAtTime(near ? .48 : 0, context.currentTime, .18);
 }

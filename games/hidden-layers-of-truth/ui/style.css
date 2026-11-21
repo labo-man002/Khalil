@@ -422,3 +422,55 @@ html:has(body.playing), body.playing { height:100%; min-height:0; overflow:hidde
 @container (max-width:700px) or (max-height:330px) {
   .stage-actions .first-clue { position:relative; inset:auto }
 }
+
+/* Keep rain against the glass indoors and let the outdoor scene carry the heavier weather. */
+.stage[data-place="room"] .weather { display:none }
+.stage[data-place="street"] .weather { opacity:.61 }
+.stage[data-place="room"] .stage-caption { color:#e2eee9 }
+.character-intro {
+  margin:.55rem 0; padding:.5rem .7rem; border-inline-start:2px solid #a3cabb;
+  background:#20353a; color:#edf1e4; font-size:.92rem;
+}
+.character-intro strong { color:#c5ede0 }
+.dialogue-actions { gap:.5rem }
+.step-title { color:#f8d8a4; font-weight:700; padding-inline:0 .35rem }
+.certainty {
+  margin-block:.85rem 0; padding:.45rem .75rem .7rem;
+  border:1px solid #b99066; border-radius:7px; background:#282c29; max-width:42rem;
+}
+.certainty.needs-confidence { border-color:#ffd08a }
+.certainty p { color:#ece0ce; font-size:.9rem }
+.certainty-options { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.3rem; margin-top:.35rem }
+.certainty-options label {
+  display:grid; place-items:center; position:relative; min-height:44px;
+  background:#172228; border:1px solid #78827a; border-radius:5px;
+  font-size:clamp(.78rem,2.25vw,.98rem); cursor:pointer;
+}
+.certainty-options input { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer }
+.certainty-options label:is(:hover,:has(:focus-visible)) { outline:2px solid var(--amber); outline-offset:1px }
+.certainty-options label:has(:checked) { background:var(--amber); color:var(--ink); border-color:var(--amber); font-weight:700 }
+.verse-player { display:flex; flex-wrap:wrap; gap:.55rem .75rem; align-items:center; margin-block:.65rem .1rem }
+.verse-player [role="status"]:empty { display:none }
+.verse-player a { font-size:.86rem }
+.lesson blockquote { line-height:2; margin-inline:clamp(.2rem,2vw,1rem) }
+.personal-highlight {
+  padding:.65rem .8rem; background:#2d443e; border-inline-start:3px solid #a6d5bc;
+  color:#f6f0df; font-size:1.05rem;
+}
+.confidence-trail {
+  list-style:none; padding:0; margin:.8rem 0 .4rem; display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem;
+}
+.confidence-trail li {
+  padding:.5rem .3rem; text-align:center; border:1px solid #667a70;
+  border-radius:6px; background:#16242a; font-size:.82rem;
+}
+.confidence-trail strong { display:block; color:var(--amber); font-size:1.2rem }
+.confidence-reading { margin-bottom:.8rem }
+.decision-recap { margin:.75rem 0 }
+.decision-recap summary { min-height:44px; align-content:center; color:var(--amber); cursor:pointer }
+.decision-recap dl > div { margin-block:.5rem }
+.decision-recap dt { font-weight:700 }
+.decision-recap dd { margin:0; color:var(--muted) }
+.room-chatter { color:#d9c3ad; font-size:.9rem; margin-block:.25rem .5rem }
+.ending-links { display:flex; flex-wrap:wrap; gap:.45rem; margin-block:.6rem 1rem }
