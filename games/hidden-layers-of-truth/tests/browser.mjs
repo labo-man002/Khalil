@@ -350,7 +350,23 @@ try {
     assert(Math.abs(endingBounds.y + endingBounds.height - variant.viewport.height) <= 1);
     assert.equal(await page.locator('#ending-insights').isVisible(), false);
     await capture('ending');
+    if (!mobile) await page.emulateMedia({ reducedMotion: 'no-preference' });
     await click(endingTab('insights'));
+    const cards = page.locator('.insight-cards article');
+    if (!mobile) {
+      assert.equal(await action('ending-skip').isVisible(), true);
+      assert.equal(await cards.first().isVisible(), false);
+      await cards.first().waitFor({ state: 'visible' });
+      assert.equal(await cards.nth(1).isVisible(), false);
+      await cards.nth(1).waitFor({ state: 'visible' });
+      assert.equal(await cards.last().isVisible(), false);
+      await click(action('ending-skip'));
+      assert.equal(await cards.last().isVisible(), true);
+      assert.equal(await action('ending-skip').isVisible(), false);
+    } else {
+      assert.equal(await cards.last().isVisible(), true);
+      assert.equal(await action('ending-skip').isVisible(), false);
+    }
     assert.equal(await endingTab('insights').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#reflection-title').evaluate(el => el === document.activeElement), true);
     assert.equal(await recap.isVisible(), false);
@@ -361,6 +377,11 @@ try {
     await click(page.locator('.decision-recap summary'));
     assert.equal(await page.locator('.decision-recap dd').count(), 7);
     await click(endingTab('verse'));
+    if (!mobile) {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.locator('.lesson blockquote').waitFor({ state: 'visible' });
+      assert.equal(await action('ending-skip').isVisible(), false);
+    }
     assert.equal(await page.locator('.finale-scroll').evaluate(el => el.scrollTop), 0);
     assert.equal(await page.locator('.mirror-messages article').count(), 2);
     assert.match(await page.locator('.mirror-messages').innerText(), /طمّنّي عليك/);
