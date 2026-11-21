@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chapter } from '../content/chapter.mjs';
+import { chapter, musicCue } from '../content/chapter.mjs';
 import { evidence } from '../content/evidence.mjs';
 import { newStory, currentBeats, transition } from '../engine/story.mjs';
 import { loadStory, saveStory, loadSettings, saveSettings, defaults } from '../engine/save.mjs';
@@ -140,4 +140,18 @@ test('reflection quotes the same run and differentiates evidence-supported reten
   assert.equal(retained.passedRumor, true);
   assert(changed.added.includes('transfer'));
   assert.deepEqual(changed, summarize(run({ money:'missing', revision:'moved', rumor:'check' }).state));
+});
+
+test('music follows the new clue, confession and reveal without foreshadowing them', () => {
+  const cue = (sceneId, evidence = [], hotspot = null) => musicCue({ sceneId, evidence, hotspot });
+  assert.equal(cue('intro'), 'room');
+  assert.equal(cue('intro', ['read']), 'doubt');
+  assert.equal(cue('morning'), 'office');
+  assert.equal(cue('cafe'), 'cafe');
+  assert.equal(cue('cafe', [], 'adam'), 'admission');
+  assert.equal(cue('adamReply'), 'admission');
+  assert.equal(cue('proof'), 'office');
+  assert.equal(cue('proof', ['transfer']), 'reveal');
+  assert.equal(cue('revision'), 'reveal');
+  assert.equal(cue('end'), 'end');
 });

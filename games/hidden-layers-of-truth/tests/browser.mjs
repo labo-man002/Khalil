@@ -153,6 +153,7 @@ try {
     await drain();
     await click(action('leave'));
     await choose('exclude', 72);
+    assert.match(await page.locator('#animated-text').innerText(), /نهار الجمعة الصباح/);
     assert.equal(await page.locator('[data-speaker="sami"] h1').innerText(), 'سامي');
     await click(action('advance'));
     assert.equal(await page.locator('[data-speaker="adam"] h1').innerText(), 'آدم');

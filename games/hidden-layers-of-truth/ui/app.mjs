@@ -1,5 +1,5 @@
 import './style.css';
-import { chapter, exhibits, locations } from '../content/chapter.mjs';
+import { chapter, exhibits, locations, musicCue } from '../content/chapter.mjs';
 import { evidence, evidenceTypes } from '../content/evidence.mjs';
 import { currentBeats, newStory, transition } from '../engine/story.mjs';
 import { loadSettings, loadStory, saveSettings, saveStory } from '../engine/save.mjs';
@@ -272,7 +272,7 @@ function render(focus, from) {
     return;
   }
   const node = chapter[state.sceneId];
-  setSceneMusic(node.kind === 'end' ? 'end' : node.place);
+  setSceneMusic(musicCue(state));
   const beats = currentBeats(state);
   const beat = beats?.[state.beatIndex];
   const body = beat ? dialogue(beat, state.hotspot && state.beatIndex === beats.length - 1)
@@ -333,7 +333,7 @@ function settingsPanel() {
       <output for="volume" dir="ltr">${settings.volume}%</output></div>
     <p class="hint" role="status" id="sound-status"></p>
     <label><input type="checkbox" id="still" ${settings.reducedMotion ? 'checked' : ''}> نقص الحركة</label>
-    <label><input type="checkbox" id="instant" ${settings.instantText ? 'checked' : ''}> ورّيني الحوار كامل على طول</label>
+    <label><input type="checkbox" id="instant" ${settings.instantText ? 'checked' : ''}> ورّيني الكلام الكلّ من أوّل مرّة</label>
   </div>`);
 }
 
@@ -344,7 +344,7 @@ function journal() {
       <h3>${title}</h3><p class="hint">${source}</p><p>${description}</p><p class="open-question">${question}</p></article>`;
   });
   const judgments = state.judgments.map(event =>
-    `<li>${event.revisedFrom ? '<strong>مراجعة بعد الكشف </strong>' : ''}${interpretationLabel(event)} · ${percent(event.confidence)}
+    `<li>${event.revisedFrom ? '<strong>رايي بعد كشف البنك </strong>' : ''}${interpretationLabel(event)} · ${percent(event.confidence)}
     <small>وقتها شفت ${event.evidence.map(id => evidence[id][1]).join('، ')}.</small></li>`);
   openPanel('دفتر سامي', `${cards.join('') || '<p>الدفتر مازال فارغ. تفقد البلاصة واحكي مع الناس.</p>'}
     ${judgments.length ? `<h3>أحكامي والثقة فيها</h3><ol class="judgments">${judgments.join('')}</ol>` : ''}`);
@@ -352,13 +352,13 @@ function journal() {
 
 function source() {
   openPanel('على الآية', `<blockquote lang="ar">﴿ٱجْتَنِبُوا۟ كَثِيرًۭا مِّنَ ٱلظَّنِّ إِنَّ بَعْضَ ٱلظَّنِّ إِثْمٌۭ﴾</blockquote>
-    <p>مقتطف من سورة الحجرات، الآية <bdi dir="ltr">49:12</bdi>.</p>
-    <p>الحكاية تخلّيك تتأمّل في الفرق بين الحذر، والحكم على النيّة، والكلام اللي يتنقل على الناس.</p>
-    <p><a href="https://quran.com/ar/49/12" target="_blank" rel="noopener noreferrer">نقرا الآية كاملة والسياق</a></p>`);
+    <p>من سورة الحجرات، الآية <bdi dir="ltr">49:12</bdi>.</p>
+    <p>في الحكاية شفت ناس تسمع كلمة وتعاودها، وناس تشكّ وتسأل قبل ما تحكم. تنجّم تقرا الآية كاملة من اللينك.</p>
+    <p><a href="https://quran.com/ar/49/12" target="_blank" rel="noopener noreferrer">نقرا الآية كاملة</a></p>`);
 }
 
 function confirmRestart() {
-  openPanel('نرجعوا من اللّول؟', '<p>التقدّم والاختيارات في الجولة هاذي يتبدّلوا بحفظ جديد.</p><button class="primary" data-action="restart">إي، نبدأ جولة جديدة</button>');
+  openPanel('نرجعوا من اللّول؟', '<p>كان تعاود من اللّول، اللعب اللي تسجّل توّة يتفسخ.</p><button class="primary" data-action="restart">إي، نبدأ جولة جديدة</button>');
 }
 
 document.addEventListener('click', event => {
