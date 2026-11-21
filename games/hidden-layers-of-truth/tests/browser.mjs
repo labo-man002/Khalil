@@ -163,6 +163,11 @@ try {
     assert.equal(await page.locator('.chapter-stage canvas').count(), 1);
     assert.equal(await music.getAttribute('aria-pressed'), quietStart ? 'false' : 'true');
     await click(action('start'));
+    assert.match(await page.locator('#prologue-title').innerText(), /سامي/);
+    assert.match(await page.locator('.prologue .line').innerText(), /متطوّع في جمعيّة الجسر/);
+    assert.equal(await page.locator('.first-clue').count(), 0);
+    if (quietStart) await click(action('skip-opening'));
+    else await drain();
     assert.equal(await page.locator('.first-clue').evaluate(el => document.activeElement === el), true);
     if (quietStart) {
       assert.equal(await page.evaluate(() => window.musicMeter), undefined);
@@ -179,6 +184,12 @@ try {
     assert.equal(await action('leave').isDisabled(), true);
     assert.equal(await page.locator('[data-required=true]').count(), 3);
     await assertHotspotsSeparate();
+    const shell = await page.locator('#app').boundingBox();
+    assert(Math.abs(shell.height - variant.viewport.height) <= 1);
+    assert.equal(await page.evaluate(() => {
+      window.scrollTo(0, 100);
+      return window.scrollY;
+    }), 0);
     assert.match(await page.locator('#investigation-progress').innerText(), /مازال يلزمك تشوف/);
     if (!mobile) {
       await page.emulateMedia({ reducedMotion: 'no-preference' });
