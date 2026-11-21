@@ -22,6 +22,8 @@ const instruments = {
 let context;
 let master;
 let reverb;
+let softNoise;
+let locationSound;
 let waves;
 let revision = 0;
 let cueName = 'street';
@@ -74,6 +76,25 @@ function stopScore() {
   score = undefined;
 }
 
+function playAtmosphere(bus, time, bar) {
+  if (locationSound === 'cafe' && bar === 2) {
+    note(bus, time + .7, 90, .29, .038, 'bell', .012);
+    note(bus, time + .82, 97, .18, .028, 'sine', .01);
+  } else if (locationSound === 'office' && bar === 1) {
+    note(bus, time + .44, 40, .19, .042, 'triangle', .013);
+    note(bus, time + .9, 45, .12, .034, 'triangle', .012);
+  }
+  if (locationSound !== 'street' && locationSound !== 'room') return;
+  const rain = context.createBufferSource();
+  const gain = context.createGain();
+  rain.buffer = softNoise;
+  gain.gain.setValueAtTime(0, time);
+  gain.gain.linearRampToValueAtTime(locationSound === 'street' ? .04 : .016, time + .3);
+  gain.gain.linearRampToValueAtTime(0, time + 2.35);
+  rain.connect(gain).connect(bus);
+  rain.start(time);
+}
+
 function startScore() {
   const { tonic, beat, bass, melody, color, percussion = [], space = .10, counter } = cues[cueName];
   const { attack, length, level, chord, echo } = instruments[color];
@@ -91,6 +112,7 @@ function startScore() {
     if (nextBar < context.currentTime) nextBar = context.currentTime + .025;
     while (nextBar < context.currentTime + .22) {
       const root = tonic + bass[index];
+      playAtmosphere(bus, nextBar, index);
       note(bus, nextBar, root - 12, beat * 3.9, .10, 'triangle', .14);
       chord.forEach((interval, voice) =>
         note(bus, nextBar + voice * .05, root + interval, beat * 4.25, .15 / chord.length, 'sine', .20));
@@ -111,7 +133,8 @@ function startScore() {
   plan();
 }
 
-export function setSceneMusic(name) {
+export function setSceneMusic(name, place) {
+  locationSound = place;
   if (cueName === name) return;
   cueName = name;
   if (enabled) {
@@ -130,6 +153,13 @@ export async function setAudio({ music, volume }) {
       master.gain.value = 0;
       master.connect(context.destination);
       reverb = makeReverb();
+      softNoise = context.createBuffer(1, Math.ceil(context.sampleRate * 2.4), context.sampleRate);
+      const samples = softNoise.getChannelData(0);
+      let filtered = 0;
+      for (let i = 0; i < samples.length; i++) {
+        filtered = .78 * filtered + .22 * (Math.random() * 2 - 1);
+        samples[i] = filtered;
+      }
       waves = Object.fromEntries(Object.entries(instruments).map(([name, { harmonics }]) => [
         name,
         context.createPeriodicWave(new Float32Array(harmonics.length + 1), Float32Array.from([0, ...harmonics])),
@@ -152,4 +182,11 @@ export function chime() {
   const now = context.currentTime;
   note(master, now, 81, .23, .11);
   note(master, now + .065, 86, .30, .075);
+}
+
+export function phoneBuzz() {
+  if (!enabled) return;
+  const now = context.currentTime;
+  note(master, now, 45, .13, .17, 'pulse', .015);
+  note(master, now + .19, 45, .12, .13, 'pulse', .015);
 }

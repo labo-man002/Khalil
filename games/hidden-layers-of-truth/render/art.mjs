@@ -134,6 +134,10 @@ function room(p) {
   box(89,142,9,4,'#9bbab2');
   box(225,138,12,9,'#c2ab85');
   box(226,139,8,1,'#585c5a');
+  // Keys next to the phone.
+  box(103,144,5,3,'#bfa36f');
+  box(107,145,7,1,'#d4b783');
+  box(112,146,2,1,'#bfa36f');
   box(58,102,3,44,'#6a5b4d');
   poly([[51,91],[67,91],[72,106],[45,106]],'#c69562');
   glow(59,107,87,'#f9ba6242');
@@ -307,7 +311,35 @@ function sceneLayer(canvas, key, paint) {
   return layer;
 }
 
-export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'room' ? 249 : 145, motion = 0, stride = 0) {
+function sceneDetails(ctx, place, sceneId, time) {
+  const {box, glow} = painter(ctx);
+  if (place === 'room' && sceneId === 'intro' && time < 3400) {
+    if (Math.floor(time / 390) % 2 === 0) {
+      glow(93,144,24,'#9cdac06e');
+      box(89,142,9,4,'#cae7cc');
+    }
+  }
+  if (place === 'cafe' && sceneId !== 'adam-story') {
+    for (const [index, x] of [216,377].entries()) {
+      const rise = (Math.floor(time / 130) + index * 3) % 9;
+      box(x + (rise % 3) - 1, 133 - rise * 2, 3, 2, '#e9c9a066');
+      box(x + (rise % 3) + 2, 131 - rise * 2, 2, 1, '#e9c9a038');
+    }
+  }
+  if (place === 'street') {
+    const glint = Math.floor(time / 180) % 12;
+    box(237 + glint,161 + glint * 4,7 + glint,1,'#e9bc795c');
+  }
+  if (place === 'office') {
+    for (const [x,y] of [[373,173], [396,175], [390,161]]) {
+      box(x,y,20,12,'#a8784c');
+      box(x,y,20,2,'#c09160');
+      box(x+8,y,3,12,'#dcba82');
+    }
+  }
+}
+
+export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'room' ? 249 : 145, motion = 0, stride = 0, sceneTime = 0) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const opening = sceneId === 'splash';
@@ -320,6 +352,7 @@ export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'ro
     p.box(0,0,W,H,shade);
   });
   ctx.drawImage(background, 0, 0);
+  sceneDetails(ctx, place, sceneId, sceneTime);
 
   const featured = {
     room: sceneId === 'home' || sceneId === 'mirror' || speaker === 'maryam' ? [['maryam',307,169,-1]] : [],
@@ -327,7 +360,23 @@ export function drawScene(canvas, place, sceneId, speaker, samiX = place === 'ro
     street: opening ? [] : [['amina',212,170,-1]],
     cafe: [['adam',351,159,-1]],
   };
-  const people = [...featured[place], ['sami',samiX,189,1]];
+  let people = sceneId === 'adam-story'
+    ? [['adam',204,167,1], ['youssef',258,167,-1]]
+    : [...featured[place], ['sami',samiX,189,1]];
+  if (place === 'office') {
+    // Witness movement reflects what Sami chose to say in the meeting.
+    const walking = sceneId === 'morning' || sceneId === 'wait';
+    const distance = Math.round(Math.min(sceneTime / 1400, 1) * 42);
+    people = people.map(([name, x, y, face]) => {
+      if (name !== 'hala' && name !== 'moncef') return [name, x, y, face];
+      if (sceneId === 'wait') return [name, x + distance, y, 1];
+      if (sceneId === 'morning') return [name, x - distance, y, -1];
+      if (sceneId === 'challenge') return [name, x - 13, y + 4, -1];
+      if (sceneId === 'clarify') return [name, x - 22, y + 4, -1];
+      return [name, x, y, face];
+    });
+    if (walking) people = people.filter(([, x]) => x < W + 14);
+  }
   const active = people.find(person => person[0] === speaker);
   for (const [name, x, y, face] of people) {
     sprite(ctx, name, x, y, face, active && name !== speaker, name === speaker ? motion : 0, name === 'sami' ? stride : 0);
